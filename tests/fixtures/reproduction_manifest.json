@@ -1,0 +1,143 @@
+[
+  {
+    "id": "case01_desc",
+    "title": "描述统计：问卷学习投入",
+    "syntax_kind": null,
+    "tool": "spss_descriptives",
+    "file_path": "survey_study.sav",
+    "params": {
+      "variables": ["engagement_total", "cognitive", "affective", "behavioral"]
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Descriptive Statistics"]
+  },
+  {
+    "id": "case02_corr",
+    "title": "相关分析：投入三维度",
+    "syntax_kind": null,
+    "tool": "spss_correlations",
+    "file_path": "survey_study.sav",
+    "params": {
+      "variables": ["cognitive", "affective", "behavioral"]
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Correlations"]
+  },
+  {
+    "id": "case03_ttest_ind",
+    "title": "独立样本 t 检验：实验后测",
+    "syntax_kind": null,
+    "tool": "spss_t_test",
+    "file_path": "experiment_study.sav",
+    "params": {
+      "test_type": "independent",
+      "variables": ["posttest"],
+      "grouping_variable": "group"
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Independent Samples Test"]
+  },
+  {
+    "id": "case04_ttest_paired",
+    "title": "配对样本 t 检验：前后测",
+    "syntax_kind": null,
+    "tool": "spss_t_test",
+    "file_path": "experiment_study.sav",
+    "params": {
+      "test_type": "paired",
+      "variables": ["pretest", "posttest"]
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Paired Samples Test"]
+  },
+  {
+    "id": "case05_anova",
+    "title": "多因素方差分析：性别 × 专业",
+    "syntax_kind": null,
+    "tool": "spss_glm_univariate",
+    "file_path": "survey_study.sav",
+    "params": {
+      "dependent": "engagement_total",
+      "factors": ["gender", "major"]
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Tests of Between-Subjects Effects"]
+  },
+  {
+    "id": "case06_reliability",
+    "title": "信度分析：学习投入题项",
+    "syntax_kind": null,
+    "tool": "spss_reliability_alpha",
+    "file_path": "survey_study.sav",
+    "params": {
+      "variables": ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12"]
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Reliability Statistics"]
+  },
+  {
+    "id": "case07_factor",
+    "title": "探索性因子分析：12 题项",
+    "syntax_kind": null,
+    "tool": "spss_factor",
+    "file_path": "survey_study.sav",
+    "params": {
+      "variables": ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12"]
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Total Variance Explained"]
+  },
+  {
+    "id": "case08_regression",
+    "title": "线性回归：绩效预测",
+    "syntax_kind": null,
+    "tool": "spss_regression",
+    "file_path": "mediation_study.sav",
+    "params": {
+      "dependent": "performance",
+      "predictors": ["autonomy", "satisfaction"]
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Model Summary", "Coefficients"]
+  },
+  {
+    "id": "case09_survival",
+    "title": "Kaplan-Meier 生存曲线",
+    "syntax_kind": null,
+    "tool": "spss_kaplan_meier",
+    "file_path": "survival_study.sav",
+    "params": {
+      "time_variable": "time",
+      "status_variable": "status",
+      "status_event_value": 1,
+      "strata": "treatment"
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Kaplan-Meier"]
+  },
+  {
+    "id": "case10_nonparam",
+    "title": "非参数检验：Mann-Whitney",
+    "syntax_kind": null,
+    "tool": "spss_nonparametric_tests",
+    "file_path": "experiment_study.sav",
+    "params": {
+      "test_type": "mann_whitney",
+      "variables": ["posttest"],
+      "grouping_variable": "group",
+      "group_values": [1, 2]
+    },
+    "execution_context": {},
+    "expected_success": true,
+    "required_output_markers": ["Mann-Whitney"]
+  }
+]
