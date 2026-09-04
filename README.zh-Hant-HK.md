@@ -141,4 +141,5 @@ spss_structured_result(
 ## 許可證
 
 MIT（上游：`flupke91/spss-studio-mcp`，MIT）。
+
 MIT（上游：`Exekiel179/SPSS-MCP`，MIT）。

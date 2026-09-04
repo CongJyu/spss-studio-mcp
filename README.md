@@ -150,4 +150,5 @@ See [docs/security.md](docs/security.md).
 ## License
 
 MIT (upstream: `flupke91/spss-studio-mcp`, MIT).
+
 MIT (upstream: `Exekiel179/SPSS-MCP`, MIT).
