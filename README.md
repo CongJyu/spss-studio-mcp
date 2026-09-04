@@ -1,11 +1,11 @@
-# SPSS Studio MCP
+# SPSS Studio MCP for Mac
 
 > Make SPSS an Agent's "statistics engine + chart factory": paper-ready charts, deep result parsing, verified methods, and safe execution.
 
 **English** ｜ [繁體中文（香港）](README.zh-Hant-HK.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)]()
+[![Python](https://img.shields.io/badge/Python-3.14%2B-blue.svg)]()
 [![Tests](https://img.shields.io/badge/tests-105%20passed-brightgreen.svg)]()
 
 `spss-studio-mcp` is an MCP (Model Context Protocol) server for **IBM SPSS
@@ -54,16 +54,16 @@ Histogram with normal density of engagement_total in examples/data/survey_study.
 
 ## Paper-Ready Charts (Core Feature)
 
-| Tool | Purpose |
-|------|---------|
-| `spss_chart_histogram` / `spss_chart_histogram_density` | Histogram / histogram with normal density |
-| `spss_chart_scatter` | Scatter plot of two variables |
-| `spss_chart_bar` / `spss_chart_bar_error` | Bar chart of category means / with 95% CI error bars |
-| `spss_chart_line` / `spss_chart_area` | Time-series line / area charts |
-| `spss_chart_boxplot` | Grouped box-and-whisker plot |
-| `spss_chart_errorbar` | Mean ± CI error bar chart |
-| `spss_chart_qqplot` | Normal Q-Q plot |
-| `spss_chart_km_curve` | Kaplan-Meier survival curve |
+| Tool                                                    | Purpose                                              |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| `spss_chart_histogram` / `spss_chart_histogram_density` | Histogram / histogram with normal density            |
+| `spss_chart_scatter`                                    | Scatter plot of two variables                        |
+| `spss_chart_bar` / `spss_chart_bar_error`               | Bar chart of category means / with 95% CI error bars |
+| `spss_chart_line` / `spss_chart_area`                   | Time-series line / area charts                       |
+| `spss_chart_boxplot`                                    | Grouped box-and-whisker plot                         |
+| `spss_chart_errorbar`                                   | Mean ± CI error bar chart                            |
+| `spss_chart_qqplot`                                     | Normal Q-Q plot                                      |
+| `spss_chart_km_curve`                                   | Kaplan-Meier survival curve                          |
 
 ```python
 spss_chart_histogram_density(
@@ -108,13 +108,13 @@ Extraction details for the 16 analysis families: [docs/result_parsing.md](docs/r
 `examples/data/` ships five research-style datasets (fixed random seeds,
 fully reproducible):
 
-| File | Scenario | Key variables |
-|------|----------|---------------|
-| `survey_study.sav` | Survey: 200 students' learning engagement | `gender` / `major` / `q1`–`q12` / `engagement_total` |
-| `experiment_study.sav` | Experiment: 120 participants, pre/post memory training | `group` / `pretest` / `posttest` / `gain` |
-| `survival_study.sav` | Survival: 150 follow-up cases | `treatment` / `time` / `status` |
-| `mediation_study.sav` | Mediation: 300 employees | `autonomy` / `satisfaction` / `performance` |
-| `longitudinal_study.sav` / `long_study.sav` | Longitudinal: 60 people, 3 waves | `id` / `group` / `time` / `score` |
+| File                                        | Scenario                                               | Key variables                                        |
+| ------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------- |
+| `survey_study.sav`                          | Survey: 200 students' learning engagement              | `gender` / `major` / `q1`–`q12` / `engagement_total` |
+| `experiment_study.sav`                      | Experiment: 120 participants, pre/post memory training | `group` / `pretest` / `posttest` / `gain`            |
+| `survival_study.sav`                        | Survival: 150 follow-up cases                          | `treatment` / `time` / `status`                      |
+| `mediation_study.sav`                       | Mediation: 300 employees                               | `autonomy` / `satisfaction` / `performance`          |
+| `longitudinal_study.sav` / `long_study.sav` | Longitudinal: 60 people, 3 waves                       | `id` / `group` / `time` / `score`                    |
 
 ## Safe Execution
 
@@ -149,4 +149,5 @@ See [docs/security.md](docs/security.md).
 
 ## License
 
+MIT (upstream: `flupke91/spss-studio-mcp`, MIT).
 MIT (upstream: `Exekiel179/SPSS-MCP`, MIT).

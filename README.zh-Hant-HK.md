@@ -1,11 +1,11 @@
-# SPSS Studio MCP
+# SPSS Studio MCP for Mac
 
 > 令 SPSS 成為 Agent 的「統計引擎 + 製圖工廠」：達到投稿水準的圖片、深度結果剖析、方法真機驗證、安全執行。
 
 [English](README.md) ｜ **繁體中文（香港）**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)]()
+[![Python](https://img.shields.io/badge/Python-3.14%2B-blue.svg)]()
 [![Tests](https://img.shields.io/badge/tests-105%20passed-brightgreen.svg)]()
 
 `spss-studio-mcp` 是一個面向 **IBM SPSS Statistics** 的 MCP（Model Context
@@ -49,16 +49,16 @@ bash scripts/install_macos.sh              # 建立 .venv、安裝依賴、confi
 
 ## 達到投稿水準的圖表（核心賣點）
 
-| 工具 | 用途 |
-|------|------|
-| `spss_chart_histogram` / `spss_chart_histogram_density` | 分佈直方圖 / 直方圖 + 常態密度 |
-| `spss_chart_scatter` | 兩變項散點圖 |
-| `spss_chart_bar` / `spss_chart_bar_error` | 分類平均值長條圖 / 連 95% CI 誤差鬚 |
-| `spss_chart_line` / `spss_chart_area` | 時間序列折線 / 面積圖 |
-| `spss_chart_boxplot` | 分組箱線圖 |
-| `spss_chart_errorbar` | 平均值 ± CI 誤差條 |
-| `spss_chart_qqplot` | 常態 Q-Q 圖 |
-| `spss_chart_km_curve` | Kaplan-Meier 存活曲線 |
+| 工具                                                    | 用途                                |
+| ------------------------------------------------------- | ----------------------------------- |
+| `spss_chart_histogram` / `spss_chart_histogram_density` | 分佈直方圖 / 直方圖 + 常態密度      |
+| `spss_chart_scatter`                                    | 兩變項散點圖                        |
+| `spss_chart_bar` / `spss_chart_bar_error`               | 分類平均值長條圖 / 連 95% CI 誤差鬚 |
+| `spss_chart_line` / `spss_chart_area`                   | 時間序列折線 / 面積圖               |
+| `spss_chart_boxplot`                                    | 分組箱線圖                          |
+| `spss_chart_errorbar`                                   | 平均值 ± CI 誤差條                  |
+| `spss_chart_qqplot`                                     | 常態 Q-Q 圖                         |
+| `spss_chart_km_curve`                                   | Kaplan-Meier 存活曲線               |
 
 ```python
 spss_chart_histogram_density(
@@ -102,13 +102,13 @@ spss_structured_result(
 
 `examples/data/` 提供五組貼近論文場景的範例資料（固定隨機種子，可完整重現）：
 
-| 檔案 | 場景 | 關鍵變項 |
-|------|------|----------|
-| `survey_study.sav` | 問卷：200 位學生學習投入 | `gender` / `major` / `q1`–`q12` / `engagement_total` |
-| `experiment_study.sav` | 實驗：120 人記憶訓練前後測 | `group` / `pretest` / `posttest` / `gain` |
-| `survival_study.sav` | 存活：150 例隨訪 | `treatment` / `time` / `status` |
-| `mediation_study.sav` | 中介：300 名僱員 | `autonomy` / `satisfaction` / `performance` |
-| `longitudinal_study.sav` / `long_study.sav` | 縱向：60 人 3 次測量 | `id` / `group` / `time` / `score` |
+| 檔案                                        | 場景                       | 關鍵變項                                             |
+| ------------------------------------------- | -------------------------- | ---------------------------------------------------- |
+| `survey_study.sav`                          | 問卷：200 位學生學習投入   | `gender` / `major` / `q1`–`q12` / `engagement_total` |
+| `experiment_study.sav`                      | 實驗：120 人記憶訓練前後測 | `group` / `pretest` / `posttest` / `gain`            |
+| `survival_study.sav`                        | 存活：150 例隨訪           | `treatment` / `time` / `status`                      |
+| `mediation_study.sav`                       | 中介：300 名僱員           | `autonomy` / `satisfaction` / `performance`          |
+| `longitudinal_study.sav` / `long_study.sav` | 縱向：60 人 3 次測量       | `id` / `group` / `time` / `score`                    |
 
 ## 安全執行
 
@@ -140,4 +140,5 @@ spss_structured_result(
 
 ## 許可證
 
+MIT（上游：`flupke91/spss-studio-mcp`，MIT）。
 MIT（上游：`Exekiel179/SPSS-MCP`，MIT）。
