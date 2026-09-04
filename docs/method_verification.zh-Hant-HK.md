@@ -2,13 +2,13 @@
 
 > **語言：** [English](method_verification.md) · 繁體中文（香港）
 
-> 已於真實 IBM SPSS Statistics 32 **Windows（基線）及 macOS** 上驗證，使用
+> 已於真實 IBM SPSS Statistics 32（macOS，SPSS 32 for Mac）上驗證，使用
 > `examples/data/*.sav` 內建的資料集。所有案例均經 MCP 工具鏈對一個執行中的
 > SPSS 引擎端到端執行。
 
 ## 摘要
 
-- **26 個方法案例 —— 26/26 通過**（Windows 及 macOS 均為 26/26）。
+- **26 個方法案例 —— 26/26 通過**（macOS，真實 SPSS 32 for Mac）。
 - 涵蓋範圍：描述性統計／次數分配／相關／交叉表／常態性與離群值／信度
   （Cronbach's alpha）／因素分析／量表計分／單變量 GLM／MANOVA／獨立樣本、
   配對及單一樣本 t 檢定／Mann-Whitney 與 Wilcoxon 無母數檢定／重複量數 ANOVA／
@@ -16,8 +16,7 @@
   線性迴歸／線性混合及廣義線性混合模型。
 - 每個分析工具都會回傳經剖析的 Markdown 及一個 `### Statistical Summary`
   區塊；「Marker」欄反映每個輸出是否包含預期的結果標記。
-- 逐案例、機器可讀的結果：`docs/method_verification.json`（Windows 基線）及
-  `docs/method_verification_macos.json`（macOS）。
+- 逐案例、機器可讀的結果：`docs/method_verification_macos.json`。
 
 ## 方法案例（macOS，真實 SPSS 32 for Mac）
 
@@ -52,6 +51,6 @@
 
 > 環境：IBM SPSS Statistics 32.0.0.0 for Mac（`/Applications/IBM SPSS
 > Statistics/IBM SPSS Statistics.app`）、內建 Python 3.13.1；專案執行環境
-> Python 3.14。相關報告：[macOS 真機驗證](macos_verification.zh-Hant-HK.md)、
-> 圖表矩陣及當中之 EMF 說明；輔助工具結果見
+> Python 3.14。相關報告：[macOS 真機驗證](macos_verification.zh-Hant-HK.md)
+> （含圖表 PNG／TIFF 匯出矩陣）；輔助工具結果見
 > `docs/tool_verification_macos.json`。

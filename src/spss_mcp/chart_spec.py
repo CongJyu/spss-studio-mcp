@@ -12,7 +12,7 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
-ImageFormat = Literal["PNG", "TIFF", "EMF"]
+ImageFormat = Literal["PNG", "TIFF"]
 ChartKind = Literal[
     "histogram",
     "scatter",

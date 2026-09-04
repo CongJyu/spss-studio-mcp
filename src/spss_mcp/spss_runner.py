@@ -370,28 +370,24 @@ async def run_syntax(
         warnings.append(viewer_error)
         markdown += f"\n\n> **Viewer save note:** {viewer_error}"
 
-    # ── Open .spv in SPSS Statistics Viewer ──────────────────────────────────
+    # ── Open .spv in SPSS Statistics Viewer (macOS) ─────────────────────────
     if viewer_output_file and success:
         import os as _os
-        import sys as _sys
 
-        try:
-            if _sys.platform == "win32":
-                _os.startfile(viewer_output_file)
-            elif _sys.platform == "darwin":
-                # `open` hands the .spv to SPSS Viewer.  Opt-in via SPSS_OPEN_VIEWER
-                # so headless/batch runs (CI, full method verification) do not pop
-                # a GUI per successful analysis.
-                if _os.environ.get("SPSS_OPEN_VIEWER", "").strip().lower() in (
-                    "1",
-                    "true",
-                    "yes",
-                ):
-                    import subprocess as _subprocess
+        # `open` hands the .spv to SPSS Viewer.  Opt-in via SPSS_OPEN_VIEWER so
+        # headless/batch runs (CI, full method verification) do not pop a GUI
+        # per successful analysis.
+        if _os.environ.get("SPSS_OPEN_VIEWER", "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+        ):
+            try:
+                import subprocess as _subprocess
 
-                    _subprocess.Popen(["open", viewer_output_file])
-        except Exception:
-            pass  # non-fatal: result is still returned even if open fails
+                _subprocess.Popen(["open", viewer_output_file])
+            except Exception:
+                pass  # non-fatal: result is still returned even if open fails
 
     from spss_mcp.result_parser import parse_tables, summarize_analysis
 

@@ -11,7 +11,7 @@
 - **類別**：data-analysis / statistics / mcp-server
 - **標籤**：`spss` `statistics` `mcp` `chart` `result-parsing` `psychology` `social-science`
 - **核心能力（取自技術報告）**：
-  - 11 類達到投稿水準的圖表（PNG/TIFF/EMF，300 dpi）
+  - 11 類達到投稿水準的圖表（PNG/TIFF，300 dpi）
   - 16 類分析統計摘要（t/F/R/B/Wald/p/效應量）
   - 37+ 個工具全量真機驗收（SPSS 32）
   - 中介／調節工具（Baron & Kenny + Sobel）
@@ -29,7 +29,7 @@
 # LobeHub 收錄條目示例
 name: spss-studio-mcp
 description: >-
-  SPSS Studio MCP：達到投稿水準的圖表匯出（11 類圖 PNG/TIFF/EMF @300dpi）、
+  SPSS Studio MCP：達到投稿水準的圖表匯出（11 類圖 PNG/TIFF @300dpi）、
   深度結果剖析（Markdown + JSON + 統計摘要）、37+ 個方法真機驗證、中介／調節分析
   與安全執行（危險指令攔截／白名單／dry_run／審計）。適用於心理學／管理學／社科研究。
 category: data-analysis
@@ -49,7 +49,7 @@ tags: [spss, statistics, chart, mcp]
 - **Long description**: 引用 `README.zh-Hant-HK.md` 的功能清單與 `docs/technical_report.zh-Hant-HK.md` 的摘要。
 - **Transport**: stdio
 - **Auth**: none（由本機 SPSS 授權）
-- **OS**: Windows
+- **OS**: macOS
 
 ## 4. GitHub Release v1.0 草稿
 
@@ -57,8 +57,8 @@ tags: [spss, statistics, chart, mcp]
 
 ## 5. 提交前檢查清單
 
-- [x] 功能與驗證：37 個工具真機驗收（26 個方法 + 11 個工具）、11 類圖 × PNG/EMF/TIFF
-- [x] boxplot 全格式修復（0.3.1）：EMF 非零（約 19 KB），PNG/TIFF 正常
+- [x] 功能與驗證：37 個工具真機驗收（26 個方法 + 11 個工具）、11 類圖 × PNG/TIFF
+- [x] boxplot 修復（0.3.1）：改用 `EXAMINE` 模板後 PNG/TIFF 正常（EMF 已於 macOS 改版移除）
 - [x] 文件：README / QUICK_START / docs（教學、技術報告、出圖、剖析、驗證、安全）
 - [x] 安全：攔截／白名單／`dry_run`／審計 + `docs/security.zh-Hant-HK.md`
 - [x] CI：`.github/workflows/ci.yml`（lint + pytest）
@@ -79,4 +79,5 @@ tags: [spss, statistics, chart, mcp]
 - 技術報告（論文稿）：`docs/technical_report.zh-Hant-HK.md`
 - 使用教學：`docs/tutorial.zh-Hant-HK.md`
 - 範例圖：`examples/charts/*.png`（可作 README／收錄頁截圖）
-- 驗證紀錄：`docs/method_verification.zh-Hant-HK.md`、`docs/tool_verification.json`
+- 驗證紀錄：`docs/method_verification.zh-Hant-HK.md`（逐案例：
+  `docs/method_verification_macos.json`、`docs/tool_verification_macos.json`）

@@ -4,7 +4,7 @@
 
 > 把 SPSS 變成 Agent 可以呼叫的統計引擎與製圖工廠。
 >
-> 適用版本：v0.3+ ｜ 建議環境：Windows 10/11、Python 3.10+、IBM SPSS Statistics 20–32
+> 適用版本：v0.3+ ｜ 建議環境：macOS、Python 3.10+、IBM SPSS Statistics 32（for Mac）
 
 這篇教學專為第一次接觸 MCP、SPSS-MCP 或 Agent 工作流程的用戶而寫。你不需要先學會 MCP，也不需要記住工具名稱。完成安裝之後，直接用自然語言告訴 Agent：資料在哪裡、你想回答甚麼問題、以及希望得到甚麼結果。
 
@@ -18,7 +18,7 @@ SPSS Studio MCP 把當中的大量重複操作交給 Agent：
 - Agent 會按照研究問題，選擇描述統計、t 檢定、變異數分析、迴歸、中介、調節、存活分析等方法；
 - MCP 呼叫真實的 IBM SPSS Statistics 引擎執行分析，而不是只靠語言模型猜測結果；
 - 傳回 Markdown 表格、結構化 JSON、統計摘要、`.sps` 語法與 `.spv` Viewer 檔案；
-- 可按需要匯出 PNG、TIFF 或 EMF 格式、300 dpi 的圖表；
+- 可按需要匯出 PNG 或 TIFF 格式、300 dpi 的圖表；
 - 對危險語法、資料目錄與執行過程進行安全檢查，並寫入稽核日誌。
 
 它適合論文分析、問卷研究、實驗資料、醫學追蹤、課堂作業、研究助理工作，以及需要重複執行的統計流程。
@@ -35,14 +35,14 @@ https://github.com/flupke91/spss-studio-mcp
 
 請依照以下順序執行，不要跳過任何檢查：
 
-1. 檢查目前系統是否已安裝 Python 3.10 或以上版本、pip，以及 IBM SPSS Statistics。
+1. 檢查目前系統是否已安裝 Python 3.10 或以上版本、pip，以及 IBM SPSS Statistics for Mac（位於 `/Applications/IBM SPSS Statistics`）。
 2. 如果目前目錄沒有這個專案，請先複製（clone）專案；如果專案已經存在，請進入專案目錄，並檢查是否為最新的可用程式碼。
-3. 安裝專案依賴：pip install -e ".[dev]"。
-4. 執行 spss-studio-mcp status，並告訴我 pyreadstat、pandas 與 SPSS batch 的狀態。
+3. 安裝專案依賴：`bash scripts/install_macos.sh`（建立 `.venv`、安裝依賴，並自動設定 Claude Code）。
+4. 執行 `.venv/bin/spss-studio-mcp status`，並告訴我 pyreadstat、pandas 與 SPSS batch 的狀態。
 5. 根據我目前使用的 Agent 自動設定 MCP：
-   - 如果是 Codex，執行 spss-studio-mcp configure-codex；
-   - 如果是 Claude Code，執行 spss-studio-mcp configure-claude；
-   - 如果用戶端不支援自動設定，執行 spss-studio-mcp setup-info，並提供手動設定片段。
+   - 如果是 Codex，執行 `.venv/bin/spss-studio-mcp configure-codex`；
+   - 如果是 Claude Code，執行 `.venv/bin/spss-studio-mcp configure-claude`（`install_macos.sh` 已預設執行一次）；
+   - 如果用戶端不支援自動設定，執行 `.venv/bin/spss-studio-mcp setup-info`，並提供手動設定片段。
 6. 檢查設定檔是否成功寫入；如果修改了設定，請提示我重新啟動 Agent。
 7. 安裝專案自帶的 skills（如果目前專案包含 skills 目錄），並說明安裝位置。
 8. 重新啟動後，用 examples/data/survey_study.sav 做一次最小測試：讀取變數、執行描述統計與 Cronbach's alpha 信度分析。
@@ -57,29 +57,33 @@ https://github.com/flupke91/spss-studio-mcp
 
 ### 3.1 檢查環境
 
-在 PowerShell 中執行：
+在「終端機」（Terminal）中執行：
 
-```powershell
-python --version
-pip --version
+```bash
+python3 --version
+python3 -m pip --version
 ```
 
-Python 應為 3.10 或以上版本。然後確認 IBM SPSS Statistics 已經安裝而且授權可用。SPSS Studio MCP 的檔案讀取工具可以在沒有 SPSS 引擎的情況下運作，但真正的統計分析與圖表匯出需要 SPSS。
+Python 應為 3.10 或以上版本。然後確認 IBM SPSS Statistics for Mac（位於
+`/Applications/IBM SPSS Statistics`）已經安裝而且授權可用。SPSS Studio MCP 的
+檔案讀取工具可以在沒有 SPSS 引擎的情況下運作，但真正的統計分析與圖表匯出需要 SPSS。
 
 ### 3.2 取得專案並安裝
 
-```powershell
+```bash
 git clone https://github.com/flupke91/spss-studio-mcp.git
 cd spss-studio-mcp
-pip install -e ".[dev]"
+bash scripts/install_macos.sh          # 建立 .venv、安裝依賴、configure-claude
 ```
 
-如果專案已經在本機，直接進入專案目錄再執行安裝指令即可。開發依賴包含測試與格式化工具；如果只想執行服務，也可以使用 `pip install -e .`。
+如果專案已經在本機，直接進入專案目錄再執行安裝指令即可。`install_macos.sh`
+會建立 `.venv` 並安裝開發依賴（含測試與格式化工具）；如只想手動安裝，也可用
+`.venv/bin/pip install -e ".[dev]"`。
 
 ### 3.3 檢查 SPSS 狀態
 
-```powershell
-spss-studio-mcp status
+```bash
+.venv/bin/spss-studio-mcp status
 ```
 
 正常情況下會看到類似以下的結果：
@@ -88,17 +92,17 @@ spss-studio-mcp status
 === SPSS MCP Capability Status ===
 pyreadstat : OK v...
 pandas     : OK v...
-SPSS batch : OK - C:\Program Files\IBM\SPSS Statistics\32\stats.exe
+SPSS batch : OK - /Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin/spssengine
 ```
 
-如果顯示 `SPSS batch : NOT FOUND`，先不要急著重裝依賴。請按照第 8 節設定 `SPSS_INSTALL_PATH`，再重新執行 `status`。
+如果顯示 `SPSS batch : NOT FOUND`，先不要急著重裝依賴。請按照第 10 節設定 `SPSS_INSTALL_PATH`，再重新執行 `status`。
 
 ### 3.4 自動設定 Codex
 
 如果你使用 Codex：
 
-```powershell
-spss-studio-mcp configure-codex
+```bash
+.venv/bin/spss-studio-mcp configure-codex
 ```
 
 指令會更新 Codex 的 `~/.codex/config.toml`，並在修改現有檔案之前建立備份。執行完成後重新啟動 Codex，讓它重新載入 MCP 伺服器。
@@ -107,8 +111,8 @@ spss-studio-mcp configure-codex
 
 如果你使用 Claude Code：
 
-```powershell
-spss-studio-mcp configure-claude
+```bash
+.venv/bin/spss-studio-mcp configure-claude
 ```
 
 指令會更新 Claude Code 的用戶設定，並在需要時產生備份。執行完成後重新啟動 Claude Code。
@@ -117,8 +121,8 @@ spss-studio-mcp configure-claude
 
 先產生設定提示：
 
-```powershell
-spss-studio-mcp setup-info
+```bash
+.venv/bin/spss-studio-mcp setup-info
 ```
 
 常見的 MCP 設定形式如下：
@@ -307,7 +311,7 @@ SPSS Studio MCP 提供多種 `spss_chart_*` 工具。常用選擇如下：
 | JSON | 供腳本、網頁或後續 Agent 使用 |
 | `.sps` | 儲存實際執行的 SPSS 語法，方便重現 |
 | `.spv` | 在 SPSS Viewer 中檢視完整輸出 |
-| PNG / TIFF / EMF | 用於論文、簡報或進一步排版 |
+| PNG / TIFF | 用於論文、簡報或進一步排版 |
 | `logs/audit.jsonl` | 記錄執行過程與安全稽核資料 |
 
 涉及資料轉換時，明確要求 Agent 另存為新檔案：
@@ -335,17 +339,20 @@ SPSS Studio MCP 提供多種 `spss_chart_*` 工具。常用選擇如下：
 
 ### 10.1 設定 SPSS 安裝路徑
 
-如果自動偵測失敗，請在專案目錄建立 `.env` 檔案：
+在 macOS 上，伺服器會自動在 `/Applications` 內尋找 `IBM SPSS Statistics.app`
+bundle，並使用其中的 `Contents/bin/spssengine` 引擎與
+`Contents/bin/statisticspython3` 啟動器。如果自動偵測失敗，請在專案目錄建立
+`.env` 檔案（`SPSS_INSTALL_PATH` 可指向引擎或整個 `.app` bundle）：
 
 ```ini
-SPSS_INSTALL_PATH=C:\Program Files\IBM\SPSS Statistics\32
+SPSS_INSTALL_PATH=/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app
 ```
 
-也可以暫時在目前的 PowerShell 工作階段中設定：
+也可以暫時在目前的終端機工作階段中設定：
 
-```powershell
-$env:SPSS_INSTALL_PATH = "C:\Program Files\IBM\SPSS Statistics\32"
-spss-studio-mcp status
+```bash
+export SPSS_INSTALL_PATH="/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app"
+.venv/bin/spss-studio-mcp status
 ```
 
 ### 10.2 調整逾時
@@ -367,7 +374,10 @@ SPSS_TIMEOUT=120
 
 ### `SPSS batch : NOT FOUND`
 
-先確認 `stats.exe` 的實際位置，再設定 `SPSS_INSTALL_PATH`。設定後重新開啟終端機或重新執行 `status`。
+先確認引擎與啟動器的實際位置（`/Applications/IBM SPSS Statistics/IBM SPSS
+Statistics.app/Contents/bin/` 下的 `spssengine` 與 `statisticspython3`），再設定
+`SPSS_INSTALL_PATH`（可指向引擎或 `.app` bundle）。設定後重新開啟終端機或重新
+執行 `status`。
 
 ### Agent 看不到 SPSS 工具
 
@@ -385,7 +395,7 @@ SPSS_TIMEOUT=120
 
 ### 提示未經授權或圖片匯出失敗
 
-確認 IBM SPSS Statistics 的授權有效，並檢查是否有殘留的 `stats.exe`、`spssengine` 或 `spsswers.dll` 程序佔用試用席次。結束殘留程序後再試，並避免同時啟動多個 SPSS 工作階段。
+確認 IBM SPSS Statistics 的授權有效，並檢查是否有殘留的 `spssengine` 程序佔用試用席次。結束殘留程序後再試，並避免同時啟動多個 SPSS 工作階段。
 
 ### 資料檔案被拒絕
 
@@ -422,14 +432,14 @@ SPSS_TIMEOUT=120
 
 ## 13. 開發者與進階用戶
 
-在專案根目錄執行：
+在專案根目錄（macOS 的 `.venv` 內）執行：
 
-```powershell
-python scripts/make_sample_data.py
-python scripts/method_verification.py
-python scripts/tool_verification.py
-python scripts/archive_sample_charts.py
-pytest
+```bash
+.venv/bin/python scripts/make_sample_data.py
+.venv/bin/python scripts/method_verification.py
+.venv/bin/python scripts/tool_verification.py
+.venv/bin/python scripts/archive_sample_charts.py
+.venv/bin/pytest
 ```
 
 實現、結果解析、方法驗證與安全邊界分別參閱：

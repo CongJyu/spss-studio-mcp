@@ -2,13 +2,13 @@
 
 > **Language:** [English](method_verification.md) · [繁體中文（香港）](method_verification.zh-Hant-HK.md)
 
-> Verified against real IBM SPSS Statistics 32 — on **Windows** (baseline) and
-> **macOS** — using the bundled datasets in `examples/data/*.sav`. All cases are
-> executed end-to-end through the MCP tools against a live SPSS engine.
+> Verified against real IBM SPSS Statistics 32 for macOS, using the bundled
+> datasets in `examples/data/*.sav`. All cases are executed end-to-end through
+> the MCP tools against a live SPSS engine.
 
 ## Summary
 
-- **26 method cases — 26/26 pass** on Windows and 26/26 on macOS.
+- **26 method cases — 26/26 pass** on macOS (SPSS 32 for Mac).
 - Coverage: descriptives / frequencies / correlations / crosstabs /
   normality & outliers / reliability (Cronbach's alpha) / factor analysis /
   scale scoring / univariate GLM / MANOVA / independent, paired and one-sample
@@ -19,8 +19,7 @@
 - Every analysis tool returns the parsed Markdown plus a `### Statistical
   Summary` block; the "marker" column reports whether each output contained the
   expected result marker.
-- Per-case machine-readable results: `docs/method_verification.json`
-  (Windows baseline) and `docs/method_verification_macos.json` (macOS).
+- Per-case machine-readable results: `docs/method_verification_macos.json`.
 
 ## Method cases (macOS, real SPSS 32 for Mac)
 
@@ -55,6 +54,6 @@
 
 > Environment: IBM SPSS Statistics 32.0.0.0 for Mac (`/Applications/IBM SPSS
 > Statistics/IBM SPSS Statistics.app`), bundled Python 3.13.1; project runtime
-> Python 3.14. Companion reports: [macOS verification](macos_verification.md),
-> chart matrix and EMF notes therein; supporting-tool results in
+> Python 3.14. Companion reports: [macOS verification](macos_verification.md)
+> and its chart matrix; supporting-tool results in
 > `docs/tool_verification_macos.json`.

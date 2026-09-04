@@ -2,8 +2,15 @@
 
 > **Language:** [English](poc_chart_pipeline.md) · [繁體中文（香港）](poc_chart_pipeline.zh-Hant-HK.md)
 
+> **Update (macOS-only conversion):** this PoC was recorded against SPSS 32 for
+> Windows on 2026-08-04 and is retained here as a historical record. The product
+> now targets **SPSS Statistics for macOS only**, and Windows EMF vector export
+> has been **removed** — the chart tools export **PNG and TIFF** only, because
+> SPSS for macOS cannot produce EMF metafiles (its `OMS FORMAT=DOC` archive
+> contains only raster PNG wrapped in `.eps`).
+
 > Verification date: 2026-08-04
-> Environment: Windows + IBM SPSS Statistics **32.0.0** (`C:\Program Files\IBM\SPSS Statistics\stats.exe`)
+> Environment (historical): Windows + IBM SPSS Statistics **32.0.0** (`C:\Program Files\IBM\SPSS Statistics\stats.exe`)
 > Conclusion: **SPSS 32 has removed `OMS FORMAT=IMAGE` / `IMAGEROOT`**; the charting approach has been changed to "extract the HTML-embedded base64 PNG" + "extract the vector EMF embedded in the DOCX"
 
 ---
@@ -52,7 +59,7 @@ SPSS 32.
 | Target format | Pipeline |
 |----------|------|
 | PNG / TIFF | `OMS FORMAT=HTML IMAGES=YES IMAGEFORMAT=PNG OUTFILE='<root>.html'` → extract the base64 with a regex → decode the PNG → scale it with Pillow to the target size (default 1950×1500) and write the 300 dpi metadata (TIFF is converted from PNG, LZW) |
-| EMF | `OMS FORMAT=DOC OUTFILE='<root>.docx'` → unzip `word/media/imageN.emf` → deliver the vector EMF as-is (journal line art can be used directly; boxplot excepted, see above) |
+| EMF | removed — SPSS for macOS cannot produce Windows EMF metafiles, so the exported formats are PNG and TIFF (this row describes the Windows-era DOCX path) |
 
 ### High-DPI notes
 
@@ -60,10 +67,9 @@ SPSS 32.
   real machine:
   1. **Pillow Lanczos upscaling** (current implementation): pure Python, simple,
      with slightly soft text edges;
-  2. **Windows GDI+ vector rasterisation** (.NET `System.Drawing` renders the
-     EMF; verified to output a sharp 1950×1500 PNG): if strictly paper-ready
-     bitmaps are needed later, EMF can go through this path (Windows-only, a
-     PowerShell subprocess).
+  2. **Windows GDI+ vector rasterisation** (.NET `System.Drawing` rendered the
+     EMF; Windows-only, a PowerShell subprocess): moot now that EMF output has
+     been removed — the HTML → PNG path above is the only pipeline.
 
 ## 4. GPL/syntax issues found and fixed during real-machine verification
 
@@ -96,24 +102,26 @@ The following issues were each exposed on a real SPSS 32 and fixed
 
 ## 6. Reproduction
 
-```powershell
-cd D:\opencode\spss-studio-mcp
+```bash
+cd ~/Code/spss-studio-mcp
 python scripts/poc_chart_pipeline.py    # engine startup ~15–20 s + two variants
 python -m spss_mcp.poc_chart --format PNG   # 11 chart kinds × PNG
-python -m spss_mcp.poc_chart --format EMF   # 11 chart kinds × EMF (boxplot is expected to error, prompting a fallback)
+python -m spss_mcp.poc_chart --format TIFF  # 11 chart kinds × TIFF
 ```
 
-Outputs (default `%TEMP%\spss-studio-mcp\results`):
+Outputs (written under the configured results directory):
 - `poc_histogram_001.png` (1950×1500 @300 dpi, upscaled from about 800×500)
-- `poc_histogram_emf_001.emf` (vector)
+- `poc_histogram_001.tiff` when `--format TIFF`
 
 ## 7. Impact on the code
 
-- `src/spss_mcp/oms_image.py`: `build_oms_image_block` now generates an HTML OMS
-  block; adds `build_oms_doc_block` / `extract_html_images` /
-  `extract_docx_emf` / `validate_emf` / `oms_doc_end_block`.
-- `src/spss_mcp/chart_service.py`: `export_chart` selects the HTML or DOC
-  pipeline by format; PNG/TIFF go through upscaling + DPI post-processing.
+- `src/spss_mcp/oms_image.py`: `build_oms_image_block` generates an HTML OMS
+  block, and `extract_html_images` decodes the base64 PNGs; the DOCX/EMF
+  helpers (`build_oms_doc_block` / `extract_docx_emf` / `validate_emf` /
+  `oms_doc_end_block`) were removed along with the EMF format.
+- `src/spss_mcp/chart_service.py`: `export_chart` runs the HTML pipeline for
+  PNG / TIFF; TIFF is converted from the extracted PNG via upscaling + DPI
+  post-processing.
 - `src/spss_mcp/chart_spec.py`: 11 ChartSpec models.
 - `src/spss_mcp/chart_templates.py`: 11 template builders (GGRAPH / PPLOT / KM).
 - `src/spss_mcp/server.py`: registers the 11 `spss_chart_*` tools.

@@ -1,7 +1,7 @@
 """P1 PoC runner: GGRAPH -> OMS IMAGE -> PNG end-to-end on a real SPSS.
 
 Usage:
-    python -m spss_mcp.poc_chart [--format PNG|TIFF|EMF] [--width 1950] [--height 1500]
+    python -m spss_mcp.poc_chart [--format PNG|TIFF] [--width 1950] [--height 1500]
 
 Generates a 200-case in-memory dataset, exports four paper-ready charts
 (histogram / scatter / bar / line) and validates every image with Pillow.
@@ -155,7 +155,7 @@ async def _run(image_format: str, width: int, height: int) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--format", default="PNG", choices=["PNG", "TIFF", "EMF"])
+    parser.add_argument("--format", default="PNG", choices=["PNG", "TIFF"])
     parser.add_argument("--width", type=int, default=1950)
     parser.add_argument("--height", type=int, default=1500)
     args = parser.parse_args(argv)

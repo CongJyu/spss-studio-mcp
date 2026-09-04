@@ -1,22 +1,23 @@
-"""P1 PoC: GGRAPH -> OMS export -> PNG/EMF on a real SPSS install.
+"""P1 PoC: GGRAPH -> OMS export -> PNG/TIFF on a real SPSS install (macOS).
 
 Run from the repo root:
     python scripts/poc_chart_pipeline.py
 
-Verified on SPSS Statistics 32.0.0: ``OMS FORMAT=IMAGE`` / ``IMAGEROOT`` were
-removed, so charts are captured via ``FORMAT=HTML`` (base64 PNG embedded in
-the HTML) or ``FORMAT=DOC`` (vector EMF inside the DOCX zip).
+Verified on SPSS Statistics 32.0.0 for macOS: ``OMS FORMAT=IMAGE`` /
+``IMAGEROOT`` were removed, so charts are captured via ``FORMAT=HTML``
+(base64 PNG embedded in the HTML).  Vector EMF is not produced by SPSS for
+macOS and is therefore not exercised here.
 """
 
 import asyncio
 import sys
 from pathlib import Path
 
+from PIL import Image
+
 from spss_mcp.config import get_results_dir
 from spss_mcp.oms_image import (
-    extract_docx_emf,
     extract_html_images,
-    validate_emf,
     validate_image,
 )
 from spss_mcp.spss_engine import get_engine
@@ -105,30 +106,16 @@ async def main() -> None:
                     f"[OK ] PNG {png.name}: {meta['width']}x{meta['height']} "
                     f"{meta['bytes']} bytes @ {meta['dpi']}dpi"
                 )
-            except ValueError as exc:
-                print(f"[BAD] PNG {png.name}: {exc}")
-                failed = True
-
-    ok = await run_variant(
-        "docx_vector_emf",
-        f"OMS /TAG='EMF1' /SELECT CHARTS\n"
-        f"  /DESTINATION FORMAT=DOC\n"
-        f"    OUTFILE='{(results_dir / 'poc_histogram_emf').as_posix()}'.\n",
-        "EMF1",
-    )
-    failed = failed or not ok
-    if ok:
-        docx = results_dir / "poc_histogram_emf.docx"
-        emfs = extract_docx_emf(docx, "poc_histogram_emf")
-        for emf in emfs:
-            try:
-                meta = validate_emf(emf)
+                # TIFF is produced by converting the validated PNG (LZW).
+                tiff = png.with_suffix(".tiff")
+                with Image.open(png) as img:
+                    img.save(tiff, format="TIFF", dpi=(DPI, DPI), compression="tiff_lzw")
                 print(
-                    f"[OK ] EMF {emf.name}: {meta['width']}x{meta['height']} "
-                    f"@96dpi, {meta['bytes']} bytes (vector)"
+                    f"[OK ] TIFF {tiff.name}: {tiff.stat().st_size} bytes @ {DPI}dpi "
+                    "(converted from PNG)"
                 )
             except ValueError as exc:
-                print(f"[BAD] EMF {emf.name}: {exc}")
+                print(f"[BAD] PNG {png.name}: {exc}")
                 failed = True
 
     await engine.stop()

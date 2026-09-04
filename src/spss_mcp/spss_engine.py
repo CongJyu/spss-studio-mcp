@@ -14,7 +14,6 @@ Architecture:
 import asyncio
 import json
 import os
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -40,12 +39,8 @@ def _make_engine_script(spss_home: str) -> str:
         "import sys, os, json",
         f"SPSS_HOME = {spss_home_r}",
         'os.environ["PATH"] = SPSS_HOME + os.pathsep + os.environ.get("PATH", "")',
-        # Windows bundles the SPSS extension modules under <install>/Python3/Lib/
-        # site-packages; on macOS the bundled interpreter (statisticspython3 ->
-        # python3.13) already imports `spss` from the Resources/Python3 venv, so
-        # the extra sys.path entry is Windows-only.
-        "if sys.platform.startswith('win'):",
-        "    sys.path.insert(0, os.path.join(SPSS_HOME, 'Python3', 'Lib', 'site-packages'))",
+        # The macOS bundled interpreter (statisticspython3 -> python3.13) already
+        # imports `spss` from the Resources/Python3 venv.
         "import spss",
         "",
         "# ── Start SPSS engine once ──",
@@ -248,15 +243,12 @@ class SpssEngine:
         script_path.write_text(script_content, encoding="utf-8")
 
         env = os.environ.copy()
-        if sys.platform == "darwin":
-            # statisticspython3 derives SPSS_HOME from $SPSSHOME (or cwd); pin it to
-            # the .app Contents dir and put bin/ on PATH so the engine can be found.
-            bin_dir = str(Path(spss_home) / "bin")
-            env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
-            env["SPSS_HOME"] = spss_home
-            env["SPSSHOME"] = spss_home
-        else:
-            env["PATH"] = spss_home + os.pathsep + env.get("PATH", "")
+        # statisticspython3 derives SPSS_HOME from $SPSSHOME (or cwd); pin it to
+        # the .app Contents dir and put bin/ on PATH so the engine can be found.
+        bin_dir = str(Path(spss_home) / "bin")
+        env["PATH"] = bin_dir + os.pathsep + env.get("PATH", "")
+        env["SPSS_HOME"] = spss_home
+        env["SPSSHOME"] = spss_home
 
         try:
             self._proc = await asyncio.create_subprocess_exec(

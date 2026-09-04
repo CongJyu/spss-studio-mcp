@@ -2,7 +2,7 @@
 
 > **Language:** [English](technical_report.md) · [繁體中文（香港）](technical_report.zh-Hant-HK.md)
 
-> Technical report | 2026-08-05 | Verified environment: Windows + IBM SPSS Statistics 32.0.0
+> Technical report | 2026-08-05 (updated 2026-09-04 for the macOS-only release) | Verified environment: IBM SPSS Statistics 32.0.0.0 for macOS
 
 ## Abstract
 
@@ -14,7 +14,7 @@ Viewer, results can be read but not consumed in a structured way, and
 LLM-generated syntax lacks safety guardrails. This report presents **SPSS Studio
 MCP** — an MCP server for SPSS that closes these gaps with four complementary
 layers: (1) a **paper-ready chart pipeline**, exporting 11 chart kinds to
-PNG/TIFF/EMF (300 dpi) in one call; (2) **deep result parsing**, turning OMS
+PNG/TIFF (300 dpi) in one call; (2) **deep result parsing**, turning OMS
 text into Markdown + JSON tables and statistical summaries for 16 analysis
 families; (3) **real-machine method verification**, with all 37 tools accepted
 method by method on a real SPSS and 7+1 version-compatibility issues found and
@@ -53,13 +53,14 @@ Client (Codex / Claude / Cursor)
         ▼
 Tool layer    37+ analysis methods + 11 charts + mediation/moderation + structured results
         ▼
-Engine layer  SPSS Python3 XD API persistent session (spss.StartSPSS / spss.Submit)
+Engine layer  SPSS bundled-Python XD API persistent session (spss.StartSPSS / spss.Submit)
         ▼
-Output layer  OMS TEXT (tables) / HTML (PNG) / DOCX (EMF) + safety gate + audit
+Output layer  OMS TEXT (tables) / HTML → PNG (TIFF) + safety gate + audit
 ```
 
-- **Persistent engine**: a single resident SPSS Python3 subprocess avoids the
-  15–20 s startup cost on every call.
+- **Persistent engine**: a single resident SPSS bundled-Python
+  (`statisticspython3`) subprocess avoids the 15–20 s startup cost on every
+  call.
 - **Templated syntax**: all charting and analysis goes through predefined
   templates (validated with Pydantic); the LLM cannot freely generate GPL /
   syntax.
@@ -77,13 +78,14 @@ IMAGE`). Real-machine test matrix (excerpt):
 |------|-------------|
 | `FORMAT=IMAGE ... IMAGEROOT=...` | ✗ Unsupported |
 | `FORMAT=HTML IMAGES=YES OUTFILE=...` | ✓ Charts embedded as base64 PNG |
-| `FORMAT=DOC OUTFILE=...` | ✓ Produces a .docx; charts are vector EMF |
+| `FORMAT=DOC OUTFILE=...` | ✓ Produces a .docx; charts are vector EMF (Windows SPSS 32; macOS writes only raster PNG wrapped in `.eps`) |
 | `FORMAT=HTML IMAGEWIDTH/HEIGHT` | ✗ Fatal error |
 
 **Final solution**: PNG/TIFF go through HTML → base64 extraction → Pillow
-post-processing (1950×1500 @300 dpi, TIFF as LZW); EMF goes through DOCX → zip
-extraction of the vector EMF. The boxplot EMF is a 0-byte bug in SPSS 32 itself
-(PNG/TIFF are fine); since 0.3.1 it has been fixed by switching to the classic
+post-processing (1950×1500 @300 dpi, TIFF as LZW). The DOCX/EMF route was
+dropped when the product became macOS-only, because SPSS for macOS cannot
+produce Windows EMF metafiles. The boxplot 0-byte export bug in SPSS 32 itself
+(PNG/TIFF are fine) has been fixed since 0.3.1 by switching to the classic
 `EXAMINE /PLOT BOXPLOT` chart template (see the verification in Section 4).
 
 ### 3.2 Result parsing: from text to statistical summary
@@ -121,9 +123,9 @@ uniformly through `run_syntax` so they cover every tool.
 |------|------|
 | Analysis methods | 26/26 passed |
 | Supplementary tools (file / status / syntax / structured / genlin) | 11/11 passed |
-| Charts × PNG/EMF/TIFF | All 11 kinds passed in every format (0.3.1 fixed the boxplot EMF with the `EXAMINE` template; EMF ≈ 19 KB, non-zero) |
+| Charts × PNG/TIFF | All 11 kinds passed in PNG and TIFF (0.3.1 fixed the boxplot 0-byte export with the `EXAMINE` template) |
 | Mediation / moderation | Passed on a real machine (Sobel z=6.75, p<.001; interaction p=.639) |
-| Unit tests | 109 passed (including a real-machine reproduction manifest with self-contained sample data) |
+| Unit tests | 105 passed (including a real-machine reproduction manifest with self-contained sample data) |
 
 Sample data and archived charts: `examples/` (survey / experiment / survival /
 mediation / longitudinal).
@@ -131,9 +133,8 @@ mediation / longitudinal).
 ## 5 Discussion and Limitations
 
 - Embedded HTML PNGs are fixed at about 800×500, so a 300 dpi export means
-  upscaling plus re-stamped DPI; for a strictly high-resolution bitmap from a
-  vector chart, EMF + GDI+ rendering can be used (verified, Windows-only, left
-  for future work).
+  upscaling plus re-stamped DPI; the former EMF + GDI+ vector-rasterisation
+  route (Windows-only) no longer applies, because EMF output has been removed.
 - Mediation / moderation is implemented with three-step regression plus a Sobel
   test; for rigorous reporting, a PROCESS bootstrap cross-check is recommended.
 - Ecosystem listings (LobeHub / PulseMCP) and official Releases are
@@ -151,11 +152,11 @@ agent workflows in psychology / management / social-science research.
 
 ## Appendix: Reproduction
 
-```powershell
+```bash
 pip install -e ".[dev]"
 python scripts/make_sample_data.py
 python scripts/method_verification.py    # 26 methods
 python scripts/tool_verification.py      # 11 tools
-python -m spss_mcp.poc_chart --format PNG|EMF|TIFF
+python -m spss_mcp.poc_chart --format PNG|TIFF
 python scripts/archive_sample_charts.py  # archive the 11 sample charts
 ```

@@ -35,13 +35,13 @@
 dry_run:          Dry run: syntax is safe to execute ...
 HOST 語法:        Error: Syntax blocked: dangerous commands HOST.
 正常分析:         通過（FREQUENCIES 正常回傳）
-外部路徑:         Error: Data file does not exist: D:/outside/x.sav
+外部路徑:         Error: Data file does not exist: /Users/me/outside/x.sav
 審計日誌:         dry_run / blocked / syntax_run 事件均已寫入磁碟
 ```
 
 ## 配置
 
-```powershell
-$env:SPSS_ALLOWED_DIRS = "C:\data;D:\research\data"   # 額外容許的資料目錄
-$env:SPSS_AUDIT_LOG    = "D:\logs\spss-audit.jsonl"   # 審計日誌位置
+```bash
+export SPSS_ALLOWED_DIRS="/Users/me/data;/Users/me/research/data"   # 額外容許的資料目錄（以分號分隔）
+export SPSS_AUDIT_LOG="/Users/me/logs/spss-audit.jsonl"             # 審計日誌位置
 ```

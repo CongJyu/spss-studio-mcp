@@ -2,7 +2,7 @@
 
 > **語言：** [English](technical_report.md) · 繁體中文（香港）
 
-> 技術報告 ｜ 2026-08-05 ｜ 實測環境：Windows + IBM SPSS Statistics 32.0.0
+> 技術報告 ｜ 2026-08-05 ｜ 實測環境：macOS + IBM SPSS Statistics 32 for Mac
 
 ## 摘要
 
@@ -11,7 +11,7 @@ SPSS 是心理學、管理學與社會科學研究中事實上的標準統計軟
 論文級圖片需在 Viewer 中手動匯出、結果只能閱讀而不能以結構化方式使用、LLM
 產生的語法缺乏安全護欄。本報告介紹 **SPSS Studio MCP**——一個面向 SPSS 的 MCP
 伺服器，以四個互補層填補上述缺口：（1）**論文級出圖管線**，一鍵將 11 類圖表匯出
-為 PNG/TIFF/EMF（300 dpi）；（2）**深度結果剖析**，把 OMS 文字轉為 Markdown +
+為 PNG/TIFF（300 dpi）；（2）**深度結果剖析**，把 OMS 文字轉為 Markdown +
 JSON 表格，並為 16 類分析產生統計摘要；（3）**方法真機驗證**，37 個工具在真實
 SPSS 上逐方法驗收，並發現與修復 7+1 處版本相容問題；（4）**安全執行層**，攔截
 危險陳述、設定資料路徑白名單、提供 `dry_run` 與審計日誌。全部能力已在 SPSS 32
@@ -47,7 +47,7 @@ SPSS 上逐方法驗收，並發現與修復 7+1 處版本相容問題；（4）
         ▼
 引擎層   SPSS Python3 XD API 持久會話 (spss.StartSPSS / spss.Submit)
         ▼
-輸出層   OMS TEXT (表格) / HTML (PNG) / DOCX (EMF) + 安全閘 + 審計
+輸出層   OMS TEXT (表格) / HTML (PNG → TIFF) + 安全閘 + 審計
 ```
 
 - **持久引擎**：以單一常駐的 SPSS Python3 子程序，省去每次呼叫 15–20 秒的啟動開銷。
@@ -66,13 +66,13 @@ SPSS 上逐方法驗收，並發現與修復 7+1 處版本相容問題；（4）
 |------|-------------|
 | `FORMAT=IMAGE ... IMAGEROOT=...` | ✗ 不支援 |
 | `FORMAT=HTML IMAGES=YES OUTFILE=...` | ✓ 圖表以 base64 PNG 內嵌 |
-| `FORMAT=DOC OUTFILE=...` | ✓ 產生 .docx，圖表為向量 EMF |
+| `FORMAT=DOC OUTFILE=...` | ✓ 產生 .docx，但在 macOS 圖表為 `.eps`（內含 PNG 點陣），並非 Windows EMF |
 | `FORMAT=HTML IMAGEWIDTH/HEIGHT` | ✗ 致命錯誤 |
 
 **落定方案**：PNG／TIFF 走 HTML → base64 抽取 → Pillow 後處理（1950×1500 @300 dpi，
-TIFF 以 LZW 壓縮）；EMF 走 DOCX → zip 抽取向量 EMF。boxplot 的 EMF 是 SPSS 32 自身
-的 0 位元組缺陷（PNG／TIFF 正常），已在 0.3.1 藉改用 `EXAMINE /PLOT BOXPLOT` 傳統
-圖模板根治（見第 4 節驗證）。
+TIFF 以 LZW 壓縮）。SPSS for Mac 不產生 Windows EMF，故 DOCX→EMF 抽取管線已於
+macOS 改版移除。boxplot 的輸出異常是 SPSS 32 自身的缺陷（PNG／TIFF 正常），已在
+0.3.1 藉改用 `EXAMINE /PLOT BOXPLOT` 傳統圖模板根治（見第 4 節驗證）。
 
 ### 3.2 結果剖析：由文字到統計摘要
 
@@ -103,16 +103,16 @@ GENLIN `DISTRIBUTION` 併入 MODEL 等。
 |------|------|
 | 分析方法 | 26/26 通過 |
 | 補充工具（檔案／狀態／語法／結構化／genlin） | 11/11 通過 |
-| 圖表 × PNG/EMF/TIFF | 11 類全格式通過（0.3.1 修復 boxplot EMF：`EXAMINE` 模板，EMF 約 19 KB 非零） |
+| 圖表 × PNG/TIFF | 11 類全格式通過（0.3.1 修復 boxplot：改用 `EXAMINE` 模板後 PNG／TIFF 正常） |
 | 中介／調節 | 真機通過（Sobel z=6.75, p<.001；交互 p=.639） |
-| 單元測試 | 109 個全部通過（含真機重現清單，附自包含樣例資料） |
+| 單元測試 | 105 個全部通過（含真機重現清單，附自包含樣例資料） |
 
 樣例資料與歸檔圖表：`examples/`（問卷／實驗／存活／中介／縱向）。
 
 ## 5 討論與局限
 
-- HTML 內嵌 PNG 固定約 800×500，故 300 dpi 出圖需放大並重新標示 DPI；若要把向量圖
-  做成嚴格的高解像點陣圖，可行 EMF + GDI+ 渲染（已驗證，僅限 Windows，留待後續）。
+- HTML 內嵌 PNG 固定約 800×500，故 300 dpi 出圖需放大並重新標示 DPI；SPSS for Mac
+  不產生 Windows EMF，故不提供向量→點陣柵格化的 EMF 路徑。
 - 中介／調節以三步迴歸實作，並附 Sobel 檢驗；嚴謹報告建議以 PROCESS 的 Bootstrap
   覆核。
 - 生態收錄（LobeHub／PulseMCP）與正式 Release 均屬發佈帳號的操作，見
@@ -127,11 +127,12 @@ SPSS Studio MCP 證明了「統計引擎 + 製圖工廠 + 結構化消費 + 安�
 
 ## 附錄：復現
 
-```powershell
-pip install -e ".[dev]"
-python scripts/make_sample_data.py
-python scripts/method_verification.py    # 26 個方法
-python scripts/tool_verification.py      # 11 個工具
-python -m spss_mcp.poc_chart --format PNG|EMF|TIFF
-python scripts/archive_sample_charts.py  # 歸檔 11 張樣例圖
+```bash
+# 於 macOS 的 .venv 內執行
+.venv/bin/pip install -e ".[dev]"
+.venv/bin/python scripts/make_sample_data.py
+.venv/bin/python scripts/method_verification.py    # 26 個方法
+.venv/bin/python scripts/tool_verification.py      # 11 個工具
+.venv/bin/python -m spss_mcp.poc_chart --format PNG|TIFF
+.venv/bin/python scripts/archive_sample_charts.py  # 歸檔 11 張樣例圖
 ```

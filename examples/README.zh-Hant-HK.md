@@ -2,7 +2,7 @@
 
 > **語言：** [English](README.md) · 繁體中文（香港）
 
-> 生成日期：2026-08-04 ｜ 引擎：IBM SPSS Statistics 32.0.0 ｜ 圖片：PNG 1950×1500 @300 dpi
+> 生成日期：2026-08-04 ｜ 引擎：IBM SPSS Statistics 32.0.0（for Mac） ｜ 圖片：PNG 1950×1500 @300 dpi
 
 四組貼近論文場景的樣例資料及其代表性圖表，用於示範與迴歸驗證 `spss_chart_*` 工具。
 
@@ -38,12 +38,12 @@
 
 ## 重現
 
-```powershell
+```bash
 # 1) 重新產生樣例資料（固定隨機種子，可重現）
-python scripts/make_sample_data.py
+.venv/bin/python scripts/make_sample_data.py
 
 # 2) 真機匯出並歸檔圖表（需 SPSS + 授權）
-python scripts/archive_sample_charts.py
+.venv/bin/python scripts/archive_sample_charts.py
 ```
 
 ## 在 MCP 工具中使用

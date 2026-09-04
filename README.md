@@ -6,46 +6,35 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)]()
-[![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-105%20passed-brightgreen.svg)]()
 
 `spss-studio-mcp` is an MCP (Model Context Protocol) server for **IBM SPSS
 Statistics**. It gives Agent clients such as Codex / Claude Code / Cursor:
 
-- **Paper-ready charts**: 11 `spss_chart_*` tools export PNG / TIFF / EMF
+- **Paper-ready charts**: 11 `spss_chart_*` tools export PNG / TIFF
   (1950×1500 @300 dpi) in one call and return the file path for direct
   submission to journals;
 - **Deep result parsing**: OMS text → Markdown tables + structured JSON +
   statistical summaries for 16 analysis families (t / F / r / B / Wald / α /
   χ² / p / effect sizes);
 - **Verified methods**: all 37 analysis tools plus 11 supporting tools are
-  verified on a real SPSS 32 installation;
+  verified on real SPSS Statistics 32 for Mac;
 - **Mediation / moderation**: `spss_mediation` (Baron & Kenny three-step
   regression + Sobel test) and `spss_moderation` (mean-centred interaction
   regression);
 - **Safety layer**: dangerous-command blocking, data path allowlist,
   `dry_run` preflight, and JSONL audit logging.
 
-Everything is verified on **IBM SPSS Statistics 32.0.0 (Windows)** and
-**32.0.0.0 (macOS)** — 109 unit tests pass, including a self-contained
-real-machine reproduction manifest. Per-case macOS results:
-[docs/macos_verification.md](docs/macos_verification.md).
+Everything is verified on **IBM SPSS Statistics 32.0.0.0 for macOS** — 105 unit
+tests pass, including a self-contained real-machine reproduction manifest.
+Per-case results: [docs/macos_verification.md](docs/macos_verification.md).
 
 ---
 
 ## Quick Start
 
-**Windows**:
-
-```powershell
-cd spss-studio-mcp
-pip install -e ".[dev]"
-spss-studio-mcp status                     # should show: SPSS batch: OK
-
-spss-studio-mcp configure-codex            # writes ~/.codex/config.toml
-spss-studio-mcp configure-claude           # writes ~/.claude.json
-```
-
-**macOS** (SPSS 32 for Mac is auto-discovered; Python ≥3.10 required):
+**macOS** (SPSS Statistics 32 for Mac is auto-discovered inside the `.app`
+bundle under `/Applications`; Python ≥3.10 required):
 
 ```bash
 cd spss-studio-mcp
@@ -80,7 +69,7 @@ Histogram with normal density of engagement_total in examples/data/survey_study.
 spss_chart_histogram_density(
     variable="engagement_total",
     title="Engagement total distribution (with normal density)",
-    image_format="PNG",            # PNG / TIFF / EMF
+    image_format="PNG",            # PNG / TIFF
     width_px=1950, height_px=1500, dpi=300,
     data_file="examples/data/survey_study.sav",
 )
@@ -95,10 +84,10 @@ Sample output (exported on real SPSS 32, 1950×1500 @300 dpi):
 ![KM survival curves by treatment](examples/charts/survival_km_curve.png)
 ![Satisfaction vs performance scatter](examples/charts/mediation_satisfaction_performance_scatter.png)
 
-> **macOS note**: SPSS for Mac produces only raster PNG / TIFF output — it does
-> **not** emit Windows vector EMF (its `OMS FORMAT=DOC` archive contains PNG
-> data). On macOS use `image_format="PNG"` or `"TIFF"`; an EMF request returns a
-> clear explanation. EMF remains available on Windows.
+> **Format note**: chart output is **PNG and TIFF only**. Windows vector EMF
+> export was removed because SPSS for macOS cannot produce EMF metafiles (its
+> `OMS FORMAT=DOC` archive contains only raster PNG wrapped in `.eps`). Use
+> `image_format="PNG"` or `"TIFF"`.
 
 ## Structured Results & Statistical Summaries
 

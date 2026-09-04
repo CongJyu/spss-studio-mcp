@@ -20,7 +20,6 @@ _FOOTNOTE_RE = re.compile(r"^[a-z] .*", re.IGNORECASE)
 _BOILERPLATE_KW = (
     "IBM SPSS Statistics",
     "Licensed Materials",
-    "SPSS for Windows",
     "Copyright IBM",
 )
 

@@ -35,13 +35,13 @@
 dry_run:          Dry run: syntax is safe to execute ...
 HOST syntax:      Error: Syntax blocked: dangerous commands HOST.
 Normal analysis:  Passed (FREQUENCIES returns normally)
-External path:    Error: Data file does not exist: D:/outside/x.sav
+External path:    Error: Data file does not exist: /Users/me/outside/x.sav
 Audit log:        dry_run / blocked / syntax_run events all written to disk
 ```
 
 ## Configuration
 
-```powershell
-$env:SPSS_ALLOWED_DIRS = "C:\data;D:\research\data"   # additional allowed data directories
-$env:SPSS_AUDIT_LOG    = "D:\logs\spss-audit.jsonl"   # audit log location
+```bash
+export SPSS_ALLOWED_DIRS="/Users/me/Research/data;/Users/me/MoreData"  # additional allowed data directories (semicolon-separated)
+export SPSS_AUDIT_LOG="/Users/me/logs/spss-audit.jsonl"                # audit log location
 ```

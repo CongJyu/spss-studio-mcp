@@ -1,10 +1,12 @@
 """
-Configuration loading and SPSS installation detection for SPSS MCP.
+Configuration loading and SPSS installation detection for SPSS MCP (macOS).
+
+This MCP targets IBM SPSS Statistics for macOS only.  The engine is located
+inside the ``IBM SPSS Statistics.app`` bundle (``Contents/bin/spssengine``)
+and driven through the bundled Python launcher ``Contents/bin/statisticspython3``.
 """
 
 import os
-import shutil
-import sys
 import tempfile
 from pathlib import Path
 
@@ -15,66 +17,6 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 # Load .env from project root first and let repo-local settings override inherited shell values.
 load_dotenv(_PROJECT_ROOT / ".env", override=True)
 load_dotenv()
-
-
-def _find_spss_via_registry() -> str | None:
-    """Search Windows registry for IBM SPSS Statistics installation path."""
-    if sys.platform != "win32":
-        return None
-    try:
-        import winreg
-
-        base_key = r"SOFTWARE\IBM\SPSS Statistics"
-        for hive in (winreg.HKEY_LOCAL_MACHINE, winreg.HKEY_CURRENT_USER):
-            try:
-                with winreg.OpenKey(hive, base_key) as key:
-                    i = 0
-                    while True:
-                        try:
-                            version = winreg.EnumKey(key, i)
-                            with winreg.OpenKey(key, version) as ver_key:
-                                try:
-                                    install_dir, _ = winreg.QueryValueEx(
-                                        ver_key, "InstallationDirectory"
-                                    )
-                                    candidate = Path(install_dir) / "stats.exe"
-                                    if candidate.exists():
-                                        return str(candidate)
-                                except FileNotFoundError:
-                                    pass
-                            i += 1
-                        except OSError:
-                            break
-            except FileNotFoundError:
-                continue
-    except ImportError:
-        pass
-    return None
-
-
-def _find_spss_via_filesystem() -> str | None:
-    """Check common SPSS installation paths on Windows."""
-    common_roots = [
-        r"C:\Program Files\IBM\SPSS Statistics",
-        r"C:\Program Files\IBM\SPSS\Statistics",
-        r"C:\Program Files (x86)\IBM\SPSS Statistics",
-        r"C:\Program Files (x86)\IBM\SPSS\Statistics",
-        r"C:\spss",
-        r"D:\spss",
-        r"E:\spss",
-    ]
-    versions = list(range(20, 32))  # SPSS 20 through 31
-    for root in common_roots:
-        # Check versioned subdirectories (newest first)
-        for v in reversed(versions):
-            candidate = Path(root) / str(v) / "stats.exe"
-            if candidate.exists():
-                return str(candidate)
-        # Check root directly
-        candidate = Path(root) / "stats.exe"
-        if candidate.exists():
-            return str(candidate)
-    return None
 
 
 def _mac_candidate_engine_paths(base: Path) -> list[Path]:
@@ -134,60 +76,25 @@ def get_spss_executable() -> str | None:
     """
     Return path to the SPSS engine executable, or None if SPSS is not installed.
 
-    Windows detection order:
+    macOS detection order:
     1. SPSS_NO_SPSS env var (forces file-only mode)
-    2. SPSS_INSTALL_PATH env var (explicit path to install dir)
-    3. Windows registry
-    4. Common filesystem paths
-    5. PATH scan
-
-    macOS: SPSS_INSTALL_PATH (if given) is probed at several layouts, then the
-    .app bundle is auto-discovered under /Applications.
+    2. SPSS_INSTALL_PATH env var (explicit path to the engine or .app bundle)
+    3. Auto-discovery of the .app bundle under /Applications
     """
     if os.environ.get("SPSS_NO_SPSS", "0").strip() in ("1", "true", "yes"):
         return None
 
     install_path = os.environ.get("SPSS_INSTALL_PATH", "").strip()
 
-    if sys.platform == "darwin":
-        # Explicit install path from env
-        if install_path:
-            for candidate in _mac_candidate_engine_paths(Path(install_path)):
-                if candidate.is_file():
-                    return str(candidate)
-        # Auto-detect inside the .app bundle
-        found = _find_spss_via_filesystem_darwin()
-        if found:
-            return found
-        return None
-
-    # ---- Windows (unchanged) ----
+    # Explicit install path from env
     if install_path:
-        candidate = Path(install_path) / "stats.exe"
-        if candidate.exists():
-            return str(candidate)
-        # Maybe they pointed directly at the exe
-        if (
-            Path(install_path).name.lower() == "stats.exe"
-            and Path(install_path).exists()
-        ):
-            return install_path
-
-    # Registry
-    found = _find_spss_via_registry()
+        for candidate in _mac_candidate_engine_paths(Path(install_path)):
+            if candidate.is_file():
+                return str(candidate)
+    # Auto-detect inside the .app bundle
+    found = _find_spss_via_filesystem_darwin()
     if found:
         return found
-
-    # Filesystem
-    found = _find_spss_via_filesystem()
-    if found:
-        return found
-
-    # PATH
-    found = shutil.which("stats")
-    if found:
-        return found
-
     return None
 
 
@@ -195,7 +102,6 @@ def get_spss_python() -> str | None:
     """
     Return path to the SPSS Python launcher used to drive the XD API.
 
-    Windows: {install_dir}/Python3/python.exe
     macOS:   {Contents}/bin/statisticspython3 — a shell launcher that sources
              pythonenv.sh, activates the SPSS-bundled Python 3.13 venv and sets
              the DYLD_* paths before exec'ing the interpreter.
@@ -204,31 +110,22 @@ def get_spss_python() -> str | None:
     if not spss_exe:
         return None
 
-    if sys.platform == "darwin":
-        contents = Path(spss_exe).resolve().parent.parent  # bin -> Contents
-        launcher = contents / "bin" / "statisticspython3"
-        if launcher.is_file():
-            return str(launcher)
-        return None
-
-    python_exe = Path(spss_exe).parent / "Python3" / "python.exe"
-    if python_exe.exists():
-        return str(python_exe)
+    contents = Path(spss_exe).resolve().parent.parent  # bin -> Contents
+    launcher = contents / "bin" / "statisticspython3"
+    if launcher.is_file():
+        return str(launcher)
     return None
 
 
 def get_spss_home() -> str | None:
     """Return the SPSS installation root directory.
 
-    Windows: the directory containing stats.exe / Python3.
     macOS:   the Contents directory of IBM SPSS Statistics.app (where bin/ lives).
     """
     spss_exe = get_spss_executable()
     if not spss_exe:
         return None
-    if sys.platform == "darwin":
-        return str(Path(spss_exe).resolve().parent.parent)
-    return str(Path(spss_exe).resolve().parent)
+    return str(Path(spss_exe).resolve().parent.parent)
 
 
 def _get_positive_int_env(name: str, default: int) -> int:

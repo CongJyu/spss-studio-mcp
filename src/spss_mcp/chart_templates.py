@@ -149,9 +149,8 @@ def build_boxplot_syntax(spec: BoxplotSpec) -> str:
 
     GGRAPH's ``ELEMENT: schema`` was rejected by SPSS 32 on real datasets
     with ``outlier was found inside fences`` (cases whose value lies exactly
-    on a fence), and its DOCX/EMF export produced zero-byte images.  The
-    EXAMINE boxplot is captured by the same OMS pipeline and works for both
-    PNG/TIFF and EMF exports.
+    on a fence).  The EXAMINE boxplot is captured by the same OMS pipeline
+    and works for PNG/TIFF exports.
     """
     var = spec.variable
     group = f" BY {spec.category}" if spec.category else ""

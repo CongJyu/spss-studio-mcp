@@ -148,7 +148,6 @@ def parse_spss_output(raw_text: str) -> str:
             for kw in [
                 "IBM SPSS Statistics",
                 "Licensed Materials",
-                "SPSS for Windows",
                 "Copyright IBM",
             ]
         ):

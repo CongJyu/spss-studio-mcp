@@ -2,20 +2,12 @@
 
 > **語言：** [English](QUICK_START.md) · 繁體中文（香港）
 
-> 3 步完成部署，5 分鐘內開始使用。已在真實 IBM SPSS Statistics 32
-> **Windows 及 macOS** 上真機驗證。
+> 3 步完成部署，5 分鐘內開始使用。已在真實 IBM SPSS Statistics 32 for Mac
+> （macOS）上真機驗證。
 
 ---
 
 ## 第 1 步 — 安裝
-
-**Windows**（PowerShell）：
-
-```powershell
-cd D:\opencode\spss-studio-mcp
-pip install -e ".[dev]"
-spss-studio-mcp status   # 應顯示 SPSS batch: OK
-```
 
 **macOS**（需 Python ≥3.10；自動發現位於
 `/Applications/IBM SPSS Statistics` 的 SPSS 32 for Mac）：
@@ -23,15 +15,15 @@ spss-studio-mcp status   # 應顯示 SPSS batch: OK
 ```bash
 cd ~/Code/spss-studio-mcp
 bash scripts/install_macos.sh          # 建立 .venv、安裝依賴、configure-claude
-.venv/bin/spss-studio-mcp status       # SPSS batch: OK
+.venv/bin/spss-studio-mcp status       # 應顯示 SPSS batch: OK
 ```
 
 ## 第 2 步 — 設定 MCP 用戶端
 
-```powershell
-spss-studio-mcp configure-codex     # Codex（~/.codex/config.toml）
-spss-studio-mcp configure-claude    # Claude Code（~/.claude.json）
-spss-studio-mcp setup-info          # 印出手動設定片段
+```bash
+.venv/bin/spss-studio-mcp configure-codex     # Codex（~/.codex/config.toml）
+.venv/bin/spss-studio-mcp configure-claude    # Claude Code（~/.claude.json）
+.venv/bin/spss-studio-mcp setup-info          # 印出手動設定片段
 ```
 
 ## 第 3 步 — 使用

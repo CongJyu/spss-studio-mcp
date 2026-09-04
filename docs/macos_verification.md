@@ -17,18 +17,16 @@ verifications below all ran against a live SPSS 32 for Mac on this machine.
 
 | Item | Result |
 |---|---|
-| Unit tests (`pytest`) | **109 / 109** passed |
+| Unit tests (`pytest`) | **105 / 105** passed (was 109 before the EMF export tests were removed) |
 | Reproduction manifest (10 real cases through the full MCP tool chain) | all passed |
 | Method verification (`scripts/method_verification.py`) | **26 / 26** passed |
 | Tool verification (`scripts/tool_verification.py`) | **11 / 11** passed |
 | Chart PNG export (11 chart kinds × real machine) | **11 / 11** passed (1950×1500 @300 dpi, Pillow-validated) |
 | Chart TIFF export (11 chart kinds × real machine) | **11 / 11** passed (LZW-compressed) |
-| Chart EMF export (11 chart kinds × real machine) | unsupported on macOS (see below) |
+| Chart EMF export | removed — exported formats are PNG and TIFF (see below) |
 
 Per-case results are archived in `docs/method_verification_macos.json` and
-`docs/tool_verification_macos.json` (`docs/method_verification.json` /
-`docs/tool_verification.json` keep the Windows baseline — identical case sets,
-all passing).
+`docs/tool_verification_macos.json`.
 
 ## macOS-specific differences found and fixed during the port
 
@@ -50,33 +48,31 @@ MCP server, so `GET FILE='examples/data/x.sav'` failed with
 `The filename is not valid`.
 **Fix** (`spss_runner.py`): `data_file` and every `GET FILE='...'` in the syntax
 are resolved to absolute paths (against the server cwd, expanding `~`) before
-submission. Windows benefits too — behaviour is more robust everywhere.
+submission.
 
-### 3. Auto-opening the `.spv` viewer
-Windows used `os.startfile()` to open the SPSS Viewer.
-**Fix** (`spss_runner.py`): on macOS the file is opened with `open`, and this is
-off by default unless `SPSS_OPEN_VIEWER=1`, so headless / batch verification
-does not pop a GUI per successful analysis.
+### 3. Opening the `.spv` viewer
+**Fix** (`spss_runner.py`): the file is opened with the macOS `open` command,
+and only when `SPSS_OPEN_VIEWER=1` is set, so headless / batch verification does
+not pop a GUI per successful analysis.
 
-### 4. EMF (Windows metafile) is not produced on macOS
+### 4. EMF (Windows metafile) output removed
 Real-machine inspection: SPSS 32 for Mac's `OMS FORMAT=DOC` export writes only
 `word/media/imageN.eps` into the DOCX, whose content is actually **PNG raster** —
 no EMF members at all.
-**Decision**: EMF stays a **Windows** feature. When EMF is requested on macOS,
-`oms_image.extract_docx_emf` inspects the DOCX after the run and returns a
-precise error — "SPSS did not produce vector EMF output on macOS … request PNG
-or TIFF instead" — rather than silently degrading. PNG / TIFF are the supported
-publication formats on macOS.
+**Decision**: EMF vector export has been **removed**; the exported formats are
+**PNG and TIFF**. Because SPSS for macOS cannot produce Windows EMF metafiles,
+the chart tools no longer accept an EMF request, and the DOCX/EMF extraction
+path has been deleted.
 
 ## Recommended macOS usage
 
 - Analysis tools (t-test / ANOVA / regression / mediation / moderation /
-  survival …): identical to Windows — all available.
-- Charts: use `PNG` or `TIFF` (300 dpi, submission-ready); **do not use `EMF`**.
+  survival …): all available.
+- Charts: export `PNG` or `TIFF` (300 dpi, submission-ready); EMF is not
+  produced.
 - Data paths: relative or absolute both work (relative paths are resolved to
   absolute automatically).
-- Install & configure: `scripts/install_macos.sh` and the "macOS" sections of
-  the README / QUICK_START.
+- Install & configure: `scripts/install_macos.sh` and the README / QUICK_START.
 
 See also [method verification](method_verification.md) and the per-case JSON
 results referenced there.

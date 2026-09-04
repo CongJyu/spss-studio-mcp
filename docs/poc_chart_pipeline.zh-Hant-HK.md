@@ -6,6 +6,13 @@
 > 環境：Windows + IBM SPSS Statistics **32.0.0**（`C:\Program Files\IBM\SPSS Statistics\stats.exe`）
 > 結論：**SPSS 32 已移除 `OMS FORMAT=IMAGE` / `IMAGEROOT`**，出圖方案改為「抽取 HTML 內嵌的 base64 PNG」+「抽取 DOCX 內嵌的向量 EMF」
 
+> **歷史紀錄**：以下 PoC 於 2026-08-04 在 Windows 版 SPSS 32 上進行，屬早期
+> 探索紀錄。產品現已改為 **macOS 專屬**：SPSS for Mac 無法產生 Windows EMF
+> 中繼檔（其 `OMS FORMAT=DOC` 封存內僅含包裝在 .eps 的 PNG 點陣），**EMF 匯出
+> 已完全移除**，現行圖表輸出僅餘 **PNG / TIFF**（HTML → base64 PNG 抽取後以
+> Pillow 後處理）。下文 DOCX → EMF 抽取、GDI+ 柵格化等內容僅供了解當時發現，
+> 並非現行功能。
+
 ---
 
 ## 1. 背景
@@ -46,15 +53,14 @@ P1 的第一個里程碑是跑通「GGRAPH → OMS IMAGE → PNG」的整條管�
 | 目標格式 | 管線 |
 |----------|------|
 | PNG / TIFF | `OMS FORMAT=HTML IMAGES=YES IMAGEFORMAT=PNG OUTFILE='<root>.html'` → 用正規表達式抽取 base64 → 解碼 PNG → 用 Pillow 縮放至目標尺寸（預設 1950×1500）並寫入 300 dpi 中繼資料（TIFF 由 PNG 轉換，LZW） |
-| EMF | `OMS FORMAT=DOC OUTFILE='<root>.docx'` → 解壓 `word/media/imageN.emf` → 原樣交付向量 EMF（期刊線稿可直接使用；boxplot 除外，見上） |
+| ~~EMF~~（已移除） | `OMS FORMAT=DOC OUTFILE='<root>.docx'` → 解壓 `word/media/imageN.emf` → 原樣交付向量 EMF。此路徑已於 macOS 改版移除（見上歷史紀錄），現行產品不再提供 EMF |
 
 ### 高 DPI 說明
 
 - HTML 內嵌 PNG 只有約 800×500。已實測兩種補救方法：
   1. **Pillow Lanczos 放大**（目前實作）：純 Python，簡單，文字邊緣略軟；
-  2. **Windows GDI+ 向量柵格化**（以 .NET `System.Drawing` 渲染 EMF，已實測可輸出
-     1950×1500 的銳利 PNG）：日後若需要嚴格的論文級點陣圖，可讓 EMF 走此路徑
-     （僅限 Windows，PowerShell 子程序）。
+  2. **向量柵格化（GDI+）**：以 .NET `System.Drawing` 渲染 EMF 的路徑依賴 Windows
+     EMF，而 EMF 匯出已於 macOS 改版移除，此路徑不再適用。
 
 ## 4. 真機驗證中發現並修復的 GPL／語法問題
 
@@ -86,24 +92,25 @@ P1 的第一個里程碑是跑通「GGRAPH → OMS IMAGE → PNG」的整條管�
 
 ## 6. 復現
 
-```powershell
-cd D:\opencode\spss-studio-mcp
-python scripts/poc_chart_pipeline.py    # 引擎啟動約 15-20 秒 + 兩個變體
-python -m spss_mcp.poc_chart --format PNG   # 11 種圖表 × PNG
-python -m spss_mcp.poc_chart --format EMF   # 11 種圖表 × EMF（boxplot 預計報錯並提示降級）
+```bash
+# 在 macOS 的 .venv 內執行
+.venv/bin/python scripts/poc_chart_pipeline.py    # 引擎啟動約 15-20 秒 + 兩個變體
+.venv/bin/python -m spss_mcp.poc_chart --format PNG   # 11 種圖表 × PNG
+.venv/bin/python -m spss_mcp.poc_chart --format TIFF  # 11 種圖表 × TIFF
 ```
 
-產物（預設 `%TEMP%\spss-studio-mcp\results`）：
+產物（預設寫入 `spss-studio-mcp/results` 目錄）：
 - `poc_histogram_001.png`（1950×1500 @300 dpi，由約 800×500 放大）
-- `poc_histogram_emf_001.emf`（向量）
+- `poc_histogram_001.tiff`（LZW，由 PNG 轉換）
 
 ## 7. 對程式碼的影響
 
-- `src/spss_mcp/oms_image.py`：`build_oms_image_block` 改為產生 HTML OMS 區塊；新增
-  `build_oms_doc_block`／`extract_html_images`／`extract_docx_emf`／`validate_emf`／
-  `oms_doc_end_block`。
-- `src/spss_mcp/chart_service.py`：`export_chart` 按格式選擇 HTML 或 DOC 管線；
-  PNG/TIFF 走放大 + DPI 後處理。
+- `src/spss_mcp/oms_image.py`：`build_oms_image_block` 產生 HTML OMS 區塊；
+  `extract_html_images`／`validate_image` 抽取與驗證點陣圖。DOCX→EMF 抽取相關的
+  `build_oms_doc_block`／`extract_docx_emf`／`validate_emf`／`oms_doc_end_block`
+  已於 macOS 改版移除。
+- `src/spss_mcp/chart_service.py`：`export_chart` 走 HTML 管線；PNG/TIFF 以 Pillow
+  放大 + DPI 後處理（TIFF 由 PNG 轉換，LZW）。
 - `src/spss_mcp/chart_spec.py`：11 種 ChartSpec 模型。
 - `src/spss_mcp/chart_templates.py`：11 個模板建構器（GGRAPH／PPLOT／KM）。
 - `src/spss_mcp/server.py`：註冊 11 個 `spss_chart_*` 工具。

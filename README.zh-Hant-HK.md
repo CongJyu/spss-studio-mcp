@@ -6,46 +6,36 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)]()
-[![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-105%20passed-brightgreen.svg)]()
 
 `spss-studio-mcp` 是一個面向 **IBM SPSS Statistics** 的 MCP（Model Context
 Protocol）伺服器，為 Codex / Claude Code / Cursor 等 Agent 用戶端提供：
 
-- **達到投稿水準的圖表**：11 類 `spss_chart_*` 工具，一鍵匯出 PNG / TIFF / EMF
+- **達到投稿水準的圖表**：11 類 `spss_chart_*` 工具，一鍵匯出 PNG / TIFF
   （1950×1500 @300 dpi），回傳檔案路徑可直接投稿；
 - **深度結果剖析**：OMS 文字 → Markdown 表格 + 結構化 JSON + 16 類分析統計摘要
   （t / F / r / B / Wald / α / χ² / p / 效應量）；
-- **方法真機驗證**：全部 37 個分析工具加 11 個輔助工具均在真實 SPSS 32 安裝上驗證；
+- **方法真機驗證**：全部 37 個分析工具加 11 個輔助工具均在真實 SPSS 32 for Mac 上驗證；
 - **中介 / 調節**：`spss_mediation`（Baron & Kenny 三步迴歸 + Sobel 檢驗）、
   `spss_moderation`（中心化交互迴歸）；
 - **安全執行層**：危險指令攔截、資料路徑白名單、`dry_run` 預檢、JSONL 審計日誌。
 
-一切能力已在 **IBM SPSS Statistics 32.0.0（Windows）** 及 **32.0.0.0（macOS）**
-真機驗證 —— 109 個單元測試全部通過，包括一個自包含的真機重現清單。macOS 逐條結果見
+一切能力已在 **IBM SPSS Statistics 32.0.0.0（macOS）** 真機驗證 —— 105 個單元
+測試全部通過，包括一個自包含的真機重現清單。逐條結果見
 [docs/macos_verification.zh-Hant-HK.md](docs/macos_verification.zh-Hant-HK.md)。
 
 ---
 
 ## 快速開始
 
-**Windows**：
-
-```powershell
-cd spss-studio-mcp
-pip install -e ".[dev]"
-spss-studio-mcp status                     # 應顯示 SPSS batch: OK
-
-spss-studio-mcp configure-codex            # 寫入 Codex 用戶端設定（~/.codex/config.toml）
-spss-studio-mcp configure-claude           # 寫入 Claude Code 設定（~/.claude.json）
-```
-
 **macOS**（自動發現 SPSS 32 for Mac；需 Python ≥3.10）：
 
 ```bash
 cd spss-studio-mcp
 bash scripts/install_macos.sh              # 建立 .venv、安裝依賴、configure-claude
-.venv/bin/spss-studio-mcp status           # SPSS batch: OK
+.venv/bin/spss-studio-mcp status           # 應顯示 SPSS batch: OK
 .venv/bin/spss-studio-mcp configure-codex  # 可選：Codex 設定
+.venv/bin/spss-studio-mcp configure-claude # 可選：Claude Code 設定（~/.claude.json）
 ```
 
 然後在用戶端直接用自然語言驅動，例如：
@@ -74,14 +64,14 @@ bash scripts/install_macos.sh              # 建立 .venv、安裝依賴、confi
 spss_chart_histogram_density(
     variable="engagement_total",
     title="學習投入總分分佈（帶常態密度）",
-    image_format="PNG",            # PNG / TIFF / EMF
+    image_format="PNG",            # PNG / TIFF
     width_px=1950, height_px=1500, dpi=300,
     data_file="examples/data/survey_study.sav",
 )
 # → 回傳圖片檔案路徑，可直接投稿
 ```
 
-範例輸出（真實 SPSS 32 匯出，1950×1500 @300 dpi）：
+範例輸出（真實 SPSS 32 for Mac 匯出，1950×1500 @300 dpi）：
 
 ![帶常態密度的學習投入總分直方圖](examples/charts/survey_engagement_histogram_density.png)
 ![按主修的學習投入總分（平均值 + 95% CI）](examples/charts/survey_engagement_by_major.png)
@@ -89,9 +79,10 @@ spss_chart_histogram_density(
 ![按治療分組的 KM 存活曲線](examples/charts/survival_km_curve.png)
 ![滿意度與績效散點圖](examples/charts/mediation_satisfaction_performance_scatter.png)
 
-> **macOS 注意**：SPSS for Mac 只會產生 PNG / TIFF 點陣輸出 —— 它**不會**產生
-> Windows 向量 EMF（其 `OMS FORMAT=DOC` 封存內是 PNG 資料）。在 macOS 請用
-> `image_format="PNG"` 或 `"TIFF"`；請求 EMF 會收到明確說明。EMF 僅在 Windows 可用。
+> **macOS 注意**：本專案僅支援 macOS 上的 SPSS，圖表輸出格式為 PNG 與 TIFF。
+> SPSS for Mac 只會產生點陣輸出，不會產生 Windows 向量 EMF（其 `OMS FORMAT=DOC`
+> 封存內是 PNG 資料），因此 EMF 匯出已從產品中移除；請使用
+> `image_format="PNG"` 或 `"TIFF"`。
 
 ## 結構化結果與統計摘要
 

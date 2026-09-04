@@ -40,11 +40,11 @@ representative charts, are used to demonstrate and regression-test the
 
 ## Reproduction
 
-```powershell
+```bash
 # 1) Regenerate the sample data (fixed random seed; reproducible)
 python scripts/make_sample_data.py
 
-# 2) Export and archive the charts on a real machine (requires SPSS + a licence)
+# 2) Export and archive the charts on a real machine (requires SPSS for Mac + a licence)
 python scripts/archive_sample_charts.py
 ```
 

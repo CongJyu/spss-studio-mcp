@@ -3,22 +3,14 @@
 > **Language:** [English](QUICK_START.md) · [繁體中文（香港）](QUICK_START.zh-Hant-HK.md)
 
 > Deploy in 3 steps and start within 5 minutes. Verified on real IBM SPSS
-> Statistics 32 on **Windows and macOS**.
+> Statistics 32 for macOS.
 
 ---
 
 ## Step 1 — Install
 
-**Windows** (PowerShell):
-
-```powershell
-cd D:\opencode\spss-studio-mcp
-pip install -e ".[dev]"
-spss-studio-mcp status   # should show: SPSS batch: OK
-```
-
-**macOS** (Python ≥3.10; SPSS 32 for Mac is auto-discovered under
-`/Applications/IBM SPSS Statistics`):
+**macOS** (Python ≥3.10; SPSS Statistics 32 for Mac is auto-discovered inside
+the `.app` bundle under `/Applications`):
 
 ```bash
 cd ~/Code/spss-studio-mcp
@@ -28,10 +20,10 @@ bash scripts/install_macos.sh          # creates .venv, installs deps, configure
 
 ## Step 2 — Configure the MCP client
 
-```powershell
-spss-studio-mcp configure-codex     # Codex (~/.codex/config.toml)
-spss-studio-mcp configure-claude    # Claude Code (~/.claude.json)
-spss-studio-mcp setup-info          # print the manual config snippet
+```bash
+.venv/bin/spss-studio-mcp configure-codex     # Codex (~/.codex/config.toml)
+.venv/bin/spss-studio-mcp configure-claude    # Claude Code (~/.claude.json)
+.venv/bin/spss-studio-mcp setup-info          # print the manual config snippet
 ```
 
 ## Step 3 — Use it

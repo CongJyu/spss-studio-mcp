@@ -2,11 +2,32 @@
 
 > **語言：** [English](CHANGELOG.md) · 繁體中文（香港）
 
+## [未發佈]
+
+### 變更
+- **改為 macOS 專屬**：移除所有 Windows SPSS 支援——刪除 `install.bat`／
+  `install.ps1` Windows 安裝程式、Windows 登錄檔及 `C:\...\stats.exe`
+  檔案系統偵測、SPSS 隨附的 Windows Python 啟動器 `Python3/python.exe`、
+  以 `os.startfile()` 開啟 Viewer 的邏輯，以及
+  `Operating System :: Microsoft :: Windows` trove 分類器。目標平台僅餘
+  IBM SPSS Statistics for macOS（於 `/Applications` 內 `.app` bundle 自動
+  發現 `Contents/bin/spssengine` 引擎與 `Contents/bin/statisticspython3`
+  啟動器；安裝統一經 `scripts/install_macos.sh`）。
+- **EMF 輸出完全移除**：SPSS for Mac 無法產生 Windows EMF 中繼檔（其
+  `OMS FORMAT=DOC` 封存內僅含包裝在 .eps 的 PNG 點陣），故圖表輸出格式
+  僅餘 **PNG 與 TIFF**；文件中有關 `(PNG/TIFF/EMF)` 的說明一律改為
+  `(PNG/TIFF)`。
+- **刪除 Windows 基線 JSON**：`docs/method_verification.json` 與
+  `docs/tool_verification.json` 已刪除；逐案例 macOS 結果見
+  `docs/method_verification_macos.json` 與 `docs/tool_verification_macos.json`。
+- 單元測試數目由 109 更新為 **105**（移除 EMF 測試後）。
+
 ## [0.4.0] - 2026-09-04
 
 ### 新增
 - **macOS 移植**：已在真實 SPSS Statistics 32 for Mac 上真機驗證
   - 方法真機驗證 **26/26**、工具真機驗證 **11/11**，與 Windows 基線完全對齊
+    （此為歷史紀錄——Windows 支援其後已移除，見上 [未發佈] 條目）
   - 圖表（11 類）PNG / TIFF **11/11** 通過（1950×1500 @300 dpi）；逐條結果見
     `docs/method_verification_macos.json`、`docs/tool_verification_macos.json`
     及 `docs/macos_verification.md`
@@ -30,7 +51,8 @@
   `*.zh-Hant-HK.md` 命名）兩種語文維護；兩者含義完全一致。
 - SPSS Statistics for Mac 不會產生 Windows EMF 向量圖表（其
   `OMS FORMAT=DOC` 封存內是 PNG 點陣）；在 macOS 請用 PNG / TIFF。EMF 僅在
-  Windows 可用；在 macOS 請求 EMF 會收到明確錯誤。
+  Windows 可用；在 macOS 請求 EMF 會收到明確錯誤。（歷史紀錄——EMF 匯出
+  其後已完全移除，僅餘 PNG / TIFF，見上 [未發佈] 條目。）
 
 ## [0.3.1] - 2026-08-05
 

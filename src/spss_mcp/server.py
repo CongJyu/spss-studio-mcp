@@ -2013,7 +2013,7 @@ async def _run_chart_export(
 @mcp.tool(
     name="spss_chart_histogram",
     description=(
-        "Export a publication-ready histogram (PNG/TIFF/EMF) via GGRAPH + OMS IMAGE. "
+        "Export a publication-ready histogram (PNG/TIFF) via GGRAPH + OMS IMAGE. "
         "Provide the continuous variable; the chart file path is returned for direct submission."
     ),
 )
@@ -2023,7 +2023,7 @@ async def spss_chart_histogram(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2047,7 +2047,7 @@ async def spss_chart_histogram(
 @mcp.tool(
     name="spss_chart_scatter",
     description=(
-        "Export a publication-ready scatter plot (PNG/TIFF/EMF) via GGRAPH + OMS IMAGE. "
+        "Export a publication-ready scatter plot (PNG/TIFF) via GGRAPH + OMS IMAGE. "
         "Provide x and y variables; the chart file path is returned for direct submission."
     ),
 )
@@ -2058,7 +2058,7 @@ async def spss_chart_scatter(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2077,7 +2077,7 @@ async def spss_chart_scatter(
 @mcp.tool(
     name="spss_chart_bar",
     description=(
-        "Export a publication-ready bar chart (PNG/TIFF/EMF) of a categorical variable "
+        "Export a publication-ready bar chart (PNG/TIFF) of a categorical variable "
         "against the mean (or sum) of a continuous variable, via GGRAPH + OMS IMAGE."
     ),
 )
@@ -2089,7 +2089,7 @@ async def spss_chart_bar(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2115,7 +2115,7 @@ async def spss_chart_bar(
 @mcp.tool(
     name="spss_chart_line",
     description=(
-        "Export a publication-ready line chart (PNG/TIFF/EMF) via GGRAPH + OMS IMAGE. "
+        "Export a publication-ready line chart (PNG/TIFF) via GGRAPH + OMS IMAGE. "
         "Provide the x (time/ordinal) and y variables; the file path is returned."
     ),
 )
@@ -2126,7 +2126,7 @@ async def spss_chart_line(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2145,7 +2145,7 @@ async def spss_chart_line(
 @mcp.tool(
     name="spss_chart_boxplot",
     description=(
-        "Export a publication-ready box-and-whisker plot (PNG/TIFF/EMF) via GGRAPH + OMS. "
+        "Export a publication-ready box-and-whisker plot (PNG/TIFF) via GGRAPH + OMS. "
         "Provide a continuous variable and optionally a categorical grouping variable."
     ),
 )
@@ -2156,7 +2156,7 @@ async def spss_chart_boxplot(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2181,7 +2181,7 @@ async def spss_chart_boxplot(
 @mcp.tool(
     name="spss_chart_errorbar",
     description=(
-        "Export a publication-ready error bar chart (PNG/TIFF/EMF): mean with "
+        "Export a publication-ready error bar chart (PNG/TIFF): mean with "
         "confidence-interval whiskers per category, via GGRAPH + OMS."
     ),
 )
@@ -2193,7 +2193,7 @@ async def spss_chart_errorbar(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2219,7 +2219,7 @@ async def spss_chart_errorbar(
 @mcp.tool(
     name="spss_chart_qqplot",
     description=(
-        "Export a publication-ready normal Q-Q plot (PNG/TIFF/EMF) of a continuous "
+        "Export a publication-ready normal Q-Q plot (PNG/TIFF) of a continuous "
         "variable via PPLOT, captured through the OMS chart pipeline."
     ),
 )
@@ -2227,7 +2227,7 @@ async def spss_chart_qqplot(
     variable: str,
     data_file: Optional[str] = None,
     title: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2246,7 +2246,7 @@ async def spss_chart_qqplot(
 @mcp.tool(
     name="spss_chart_km_curve",
     description=(
-        "Export a publication-ready Kaplan-Meier survival curve (PNG/TIFF/EMF) via "
+        "Export a publication-ready Kaplan-Meier survival curve (PNG/TIFF) via "
         "the KM procedure. Provide time and status variables; group is optional."
     ),
 )
@@ -2257,7 +2257,7 @@ async def spss_chart_km_curve(
     group: Optional[str] = None,
     data_file: Optional[str] = None,
     title: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2282,7 +2282,7 @@ async def spss_chart_km_curve(
 @mcp.tool(
     name="spss_chart_area",
     description=(
-        "Export a publication-ready area chart (PNG/TIFF/EMF) of y against a "
+        "Export a publication-ready area chart (PNG/TIFF) of y against a "
         "time/ordinal x variable, via GGRAPH + OMS."
     ),
 )
@@ -2293,7 +2293,7 @@ async def spss_chart_area(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2313,7 +2313,7 @@ async def spss_chart_area(
     name="spss_chart_histogram_density",
     description=(
         "Export a publication-ready histogram overlaid with a normal density curve "
-        "(PNG/TIFF/EMF) via GGRAPH + OMS. Provide a continuous variable."
+        "(PNG/TIFF) via GGRAPH + OMS. Provide a continuous variable."
     ),
 )
 async def spss_chart_histogram_density(
@@ -2322,7 +2322,7 @@ async def spss_chart_histogram_density(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,
@@ -2347,7 +2347,7 @@ async def spss_chart_histogram_density(
     name="spss_chart_bar_error",
     description=(
         "Export a publication-ready bar chart of category means with confidence-"
-        "interval error bars (PNG/TIFF/EMF) via GGRAPH + OMS."
+        "interval error bars (PNG/TIFF) via GGRAPH + OMS."
     ),
 )
 async def spss_chart_bar_error(
@@ -2358,7 +2358,7 @@ async def spss_chart_bar_error(
     title: Optional[str] = None,
     x_label: Optional[str] = None,
     y_label: Optional[str] = None,
-    image_format: Literal["PNG", "TIFF", "EMF"] = "PNG",
+    image_format: Literal["PNG", "TIFF"] = "PNG",
     width_px: int = 1950,
     height_px: int = 1500,
     dpi: int = 300,

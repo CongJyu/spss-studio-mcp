@@ -4,7 +4,7 @@
 
 > Turn SPSS into a statistical engine and chart factory that Agents can call.
 >
-> Applies to: v0.3+ | Recommended environment: Windows 10/11, Python 3.10+, IBM SPSS Statistics 20–32
+> Applies to: v0.3+ | Recommended environment: macOS, Python 3.10+, IBM SPSS Statistics for Mac (32 verified)
 
 This tutorial is written for users who are coming to MCP, SPSS-MCP, or Agent workflows for the first time. You do not need to learn MCP first or memorize tool names. After installation, just tell the Agent in natural language where your data is, what question you want to answer, and what results you want.
 
@@ -18,7 +18,7 @@ SPSS Studio MCP hands most of that repetitive work over to the Agent:
 - The Agent chooses descriptive statistics, t-tests, ANOVA, regression, mediation, moderation, survival analysis, and other methods according to the research question;
 - MCP invokes the real IBM SPSS Statistics engine to run the analysis, rather than letting the language model guess the results;
 - It returns Markdown tables, structured JSON, statistical summaries, `.sps` syntax, and `.spv` Viewer files;
-- It exports 300 dpi charts in PNG, TIFF, or EMF format as needed;
+- It exports 300 dpi charts in PNG or TIFF format as needed;
 - It applies safety checks to dangerous syntax, data directories, and the execution process, and writes an audit log.
 
 It suits thesis analysis, questionnaire research, experimental data, medical follow-ups, coursework, research assistants, and statistical workflows that need to be run repeatedly.
@@ -57,28 +57,28 @@ If the Agent is not allowed to execute commands, ask it to explain the commands 
 
 ### 3.1 Check the environment
 
-Run the following in PowerShell:
+Run the following in a terminal:
 
-```powershell
-python --version
-pip --version
+```bash
+python3 --version
+python3 -m pip --version
 ```
 
 Python should be 3.10 or later. Then confirm that IBM SPSS Statistics is installed and that its license is usable. SPSS Studio MCP's file-reading tools can work without the SPSS engine, but genuine statistical analysis and chart export require SPSS.
 
 ### 3.2 Get the project and install it
 
-```powershell
+```bash
 git clone https://github.com/flupke91/spss-studio-mcp.git
 cd spss-studio-mcp
-pip install -e ".[dev]"
+python3 -m pip install -e ".[dev]"
 ```
 
 If the project is already on your machine, simply go into the project directory and run the install command. The development dependencies include testing and formatting tools; if you only want to run the service, you can also use `pip install -e .`.
 
 ### 3.3 Check the SPSS status
 
-```powershell
+```bash
 spss-studio-mcp status
 ```
 
@@ -88,16 +88,16 @@ Under normal conditions you will see something like the following:
 === SPSS MCP Capability Status ===
 pyreadstat : OK v...
 pandas     : OK v...
-SPSS batch : OK - C:\Program Files\IBM\SPSS Statistics\32\stats.exe
+SPSS batch : OK - /Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin/spssengine
 ```
 
-If it shows `SPSS batch : NOT FOUND`, do not rush to reinstall the dependencies. Set `SPSS_INSTALL_PATH` as described in Section 8, then run `status` again.
+If it shows `SPSS batch : NOT FOUND`, do not rush to reinstall the dependencies. Set `SPSS_INSTALL_PATH` as described in Section 10, then run `status` again.
 
 ### 3.4 Automatically configure Codex
 
 If you use Codex:
 
-```powershell
+```bash
 spss-studio-mcp configure-codex
 ```
 
@@ -107,7 +107,7 @@ The command updates Codex's `~/.codex/config.toml` and creates a backup before m
 
 If you use Claude Code:
 
-```powershell
+```bash
 spss-studio-mcp configure-claude
 ```
 
@@ -117,7 +117,7 @@ The command updates Claude Code's user configuration and creates a backup when n
 
 First generate the configuration hint:
 
-```powershell
+```bash
 spss-studio-mcp setup-info
 ```
 
@@ -307,7 +307,7 @@ A single analysis can produce the following results:
 | JSON | Consumed by scripts, web pages, or downstream Agents |
 | `.sps` | Saves the SPSS syntax that was actually executed, for reproducibility |
 | `.spv` | View the full output in SPSS Viewer |
-| PNG / TIFF / EMF | For theses, presentations, or further typesetting |
+| PNG / TIFF | For theses, presentations, or further typesetting |
 | `logs/audit.jsonl` | Records the execution process and security audit information |
 
 When data transformation is involved, explicitly ask the Agent to save to a new file:
@@ -335,16 +335,18 @@ The project blocks dangerous commands such as `HOST`, `ERASE`, and `DELETE FILE`
 
 ### 10.1 Set the SPSS install path
 
-If automatic detection fails, create a `.env` file in the project directory:
+If automatic detection fails, create a `.env` file in the project directory.
+`SPSS_INSTALL_PATH` may point at the SPSS engine, its `Contents/bin` directory,
+or the `.app` bundle:
 
 ```ini
-SPSS_INSTALL_PATH=C:\Program Files\IBM\SPSS Statistics\32
+SPSS_INSTALL_PATH=/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app
 ```
 
-You can also set it temporarily in the current PowerShell session:
+You can also set it temporarily in the current shell session:
 
-```powershell
-$env:SPSS_INSTALL_PATH = "C:\Program Files\IBM\SPSS Statistics\32"
+```bash
+export SPSS_INSTALL_PATH="/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app"
 spss-studio-mcp status
 ```
 
@@ -367,7 +369,7 @@ If the data is stored outside the project directory, you can set the directories
 
 ### `SPSS batch : NOT FOUND`
 
-First confirm the actual location of `stats.exe`, then set `SPSS_INSTALL_PATH`. After setting it, reopen the terminal or run `status` again.
+First confirm the actual location of the SPSS `.app` bundle (or the `spssengine` binary inside `Contents/bin`), then set `SPSS_INSTALL_PATH`. After setting it, reopen the terminal or run `status` again.
 
 ### The Agent cannot see the SPSS tools
 
@@ -385,7 +387,7 @@ The first engine startup takes about 15–20 seconds, after which the engine usu
 
 ### A license warning appears, or image export fails
 
-Confirm that the IBM SPSS Statistics license is valid, and check whether leftover `stats.exe`, `spssengine`, or `spsswers.dll` processes are occupying the trial seats. End the leftover processes and retry, and avoid starting several SPSS sessions at the same time.
+Confirm that the IBM SPSS Statistics license is valid, and check whether leftover `spssengine` processes are occupying the trial seats. End the leftover processes and retry, and avoid starting several SPSS sessions at the same time.
 
 ### The data file is rejected
 
@@ -424,7 +426,7 @@ If the variable coding, study design, or statistical assumptions are unclear, po
 
 Run the following in the project root directory:
 
-```powershell
+```bash
 python scripts/make_sample_data.py
 python scripts/method_verification.py
 python scripts/tool_verification.py

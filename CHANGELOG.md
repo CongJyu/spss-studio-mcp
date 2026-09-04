@@ -2,6 +2,25 @@
 
 > **Language:** [English](CHANGELOG.md) · [繁體中文（香港）](CHANGELOG.zh-Hant-HK.md)
 
+## [Unreleased]
+
+### Changed
+- **macOS-only product**: all Windows-SPSS support has been removed. The MCP now
+  targets IBM SPSS Statistics for macOS exclusively.
+  - Removed the Windows installers (`install.bat`, `install.ps1`), Windows
+    registry + `C:\...\stats.exe` filesystem detection, and the Windows
+    SPSS-bundled Python launcher (`Python3/python.exe`)
+  - Removed `os.startfile()` viewer handling; on macOS the `.spv` Viewer is
+    opened with `open` and only when `SPSS_OPEN_VIEWER=1` is set
+  - Removed the `Operating System :: Microsoft :: Windows` trove classifier
+- **Chart output is PNG and TIFF only**: Windows EMF vector export was removed
+  entirely — SPSS for macOS cannot produce EMF metafiles (its `OMS FORMAT=DOC`
+  archive contains only raster PNG wrapped in `.eps`)
+- Unit-test count is now **105** (the EMF export tests were removed); the
+  Windows-baseline JSON files `docs/tool_verification.json` and
+  `docs/method_verification.json` were deleted — per-case macOS results remain
+  in `docs/tool_verification_macos.json` and `docs/method_verification_macos.json`
+
 ## [0.4.0] - 2026-09-04
 
 ### Added
@@ -37,8 +56,9 @@
   **Traditional Chinese (Hong Kong)** (mirrors named `*.zh-Hant-HK.md`); the two
   editions carry identical meaning.
 - SPSS Statistics for Mac does not emit Windows EMF vector charts (its
-  `OMS FORMAT=DOC` archive contains PNG raster); on macOS use PNG / TIFF. EMF
-  remains available on Windows; an EMF request on macOS returns a clear error.
+  `OMS FORMAT=DOC` archive contains PNG raster); on macOS use PNG / TIFF. In
+  this release EMF was still offered as a Windows feature; it has since been
+  removed entirely (see [Unreleased] above).
 
 ## [0.3.1] - 2026-08-05
 

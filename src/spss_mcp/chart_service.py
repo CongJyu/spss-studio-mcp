@@ -4,9 +4,11 @@ Ties together chart specs, GGRAPH templates, the SPSS execution engine and
 the OMS exporter.  ``export_chart`` is the single entry point used by the
 ``spss_chart_*`` tools and the PoC runner.
 
-Export strategy on SPSS 32 (verified): charts are captured with
+Export strategy on SPSS 32 for macOS (verified): charts are captured with
 ``OMS FORMAT=HTML`` (raster: base64 PNG embedded in HTML, extracted and
-post-processed) or ``OMS FORMAT=DOC`` (vector: EMF files inside the DOCX zip).
+post-processed).  PNG is written directly; TIFF is converted from the PNG
+with Pillow.  Vector EMF is not supported because SPSS for macOS does not
+emit Windows EMF metafiles.
 """
 
 from __future__ import annotations
@@ -19,13 +21,9 @@ from spss_mcp.chart_spec import ChartSpec, ImageFormat
 from spss_mcp.chart_templates import build_chart_syntax
 from spss_mcp.config import get_results_dir
 from spss_mcp.oms_image import (
-    build_oms_doc_block,
     build_oms_image_block,
-    extract_docx_emf,
     extract_html_images,
-    oms_doc_end_block,
     oms_image_end_block,
-    validate_emf,
     validate_image,
 )
 
@@ -40,12 +38,8 @@ def _build_export_syntax(
     image_format: ImageFormat,
 ) -> str:
     chart_syntax = build_chart_syntax(spec).rstrip() + "\n"
-    if image_format.upper() == "EMF":
-        block = build_oms_doc_block(f"{output_root}.docx")
-        end_block = oms_doc_end_block()
-    else:
-        block = build_oms_image_block(f"{output_root}.html", image_format=image_format)
-        end_block = oms_image_end_block()
+    block = build_oms_image_block(f"{output_root}.html", image_format=image_format)
+    end_block = oms_image_end_block()
     return block + chart_syntax + end_block
 
 
@@ -83,10 +77,7 @@ async def export_chart(
 
     fmt = image_format.upper()
     try:
-        if fmt == "EMF":
-            files = extract_docx_emf(Path(f"{output_root}.docx"), imageroot)
-        else:
-            files = extract_html_images(Path(f"{output_root}.html"), imageroot)
+        files = extract_html_images(Path(f"{output_root}.html"), imageroot)
     except (ValueError, OSError) as exc:
         error = result.get("error") or str(exc)
         return {
@@ -101,21 +92,18 @@ async def export_chart(
     image_meta = []
     for image_path in files:
         try:
-            if fmt == "EMF":
-                meta = validate_emf(image_path)
-            else:
-                meta = validate_image(
-                    image_path,
-                    expected_format="PNG",
-                    dpi=dpi,
-                    target_width=width_px,
-                    target_height=height_px,
-                )
-                if fmt == "TIFF":
-                    tiff_path = _convert_png_to_tiff(Path(meta["path"]), dpi)
-                    meta["path"] = str(tiff_path)
-                    meta["format"] = "TIFF"
-                    meta["bytes"] = tiff_path.stat().st_size
+            meta = validate_image(
+                image_path,
+                expected_format="PNG",
+                dpi=dpi,
+                target_width=width_px,
+                target_height=height_px,
+            )
+            if fmt == "TIFF":
+                tiff_path = _convert_png_to_tiff(Path(meta["path"]), dpi)
+                meta["path"] = str(tiff_path)
+                meta["format"] = "TIFF"
+                meta["bytes"] = tiff_path.stat().st_size
             meta["success"] = True
         except ValueError as exc:
             meta = {"path": str(image_path), "success": False, "error": str(exc)}

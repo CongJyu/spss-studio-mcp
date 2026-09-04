@@ -11,7 +11,7 @@
 - **Category**: data-analysis / statistics / mcp-server
 - **Tags**: `spss` `statistics` `mcp` `chart` `result-parsing` `psychology` `social-science`
 - **Core capabilities (from the technical report)**:
-  - 11 families of paper-ready charts (PNG/TIFF/EMF, 300 dpi)
+  - 11 families of paper-ready charts (PNG/TIFF, 300 dpi)
   - Statistical summaries for 16 analysis families (t/F/R/B/Wald/p/effect sizes)
   - All 37+ tools verified on a real SPSS 32 installation
   - Mediation / moderation tools (Baron & Kenny + Sobel)
@@ -29,7 +29,7 @@ Platform: LobeHub (Lobe Chat MCP / plugin marketplace). Submission method: typic
 # LobeHub listing example
 name: spss-studio-mcp
 description: >-
-  SPSS Studio MCP: paper-ready chart export (11 chart types as PNG/TIFF/EMF
+  SPSS Studio MCP: paper-ready chart export (11 chart types as PNG/TIFF
   @300 dpi), deep result parsing (Markdown + JSON + statistical summaries),
   37+ methods verified on a real machine, mediation/moderation analysis and
   safe execution (dangerous-command blocking / allowlist / dry_run / audit).
@@ -51,7 +51,7 @@ Suggested values:
 - **Long description**: Cite the feature list in `README.md` and the summary in `docs/technical_report.md`.
 - **Transport**: stdio
 - **Auth**: none (authorised by the local SPSS licence)
-- **OS**: Windows
+- **OS**: macOS
 
 ## 4. GitHub Release v1.0 Draft
 
@@ -59,8 +59,8 @@ See `docs/release_notes_v1.0.md` (can be pasted directly into the Release page).
 
 ## 5. Pre-Submission Checklist
 
-- [x] Features and verification: 37 tools verified on a real machine (26 methods + 11 tools), 11 chart families x PNG/EMF/TIFF
-- [x] Full-format boxplot fix (0.3.1): EMF is non-zero (about 19 KB), PNG/TIFF are normal
+- [x] Features and verification: 37 tools verified on a real machine (26 methods + 11 tools), 11 chart families x PNG/TIFF
+- [x] Full-format boxplot fix (0.3.1): boxplot exports correctly in PNG / TIFF
 - [x] Documentation: README / QUICK_START / docs (tutorial, technical report, charting, parsing, verification, security)
 - [x] Security: blocking / allowlist / `dry_run` / audit + `docs/security.md`
 - [x] CI: `.github/workflows/ci.yml` (lint + pytest)
@@ -81,4 +81,4 @@ See `docs/release_notes_v1.0.md` (can be pasted directly into the Release page).
 - Technical report (paper draft): `docs/technical_report.md`
 - Tutorial: `docs/tutorial.md`
 - Sample charts: `examples/charts/*.png` (can serve as README / listing screenshots)
-- Verification records: `docs/method_verification.md`, `docs/tool_verification.json`
+- Verification records: `docs/method_verification.md`, `docs/macos_verification.md`, `docs/tool_verification_macos.json`
