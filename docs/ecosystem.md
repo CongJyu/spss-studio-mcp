@@ -1,81 +1,84 @@
-# 生态收录与 Release v1.0 准备
+# Ecosystem Listing and Release v1.0 Preparation
 
-> 2026-08-05 ｜ 提交类操作需发布账号，本文件给出可直接使用的条目与说明。
+> **Language:** [English](ecosystem.md) · [繁體中文（香港）](ecosystem.zh-Hant-HK.md)
 
-## 1. 项目速览（用于收录/发布）
+> 2026-08-05 | Submission-type operations require a publishing account; this document provides entries and instructions that are ready to use.
 
-- **名称**：spss-studio-mcp
-- **一句话**：让 SPSS 成为 Agent 的"统计引擎 + 制图工厂"：论文级图片、深度结果解析、方法真机验证、安全执行。
-- **类别**：data-analysis / statistics / mcp-server
-- **标签**：`spss` `statistics` `mcp` `chart` `result-parsing` `psychology` `social-science`
-- **核心能力（来自技术报告）**：
-  - 11 类论文级图表（PNG/TIFF/EMF，300 dpi）
-  - 16 类分析统计摘要（t/F/r/B/Wald/p/效应量）
-  - 37+ 工具全量真机验收（SPSS 32）
-  - 中介/调节工具（Baron & Kenny + Sobel）
-  - 安全层（拦截/白名单/dry_run/审计）
+## 1. Project Snapshot (for Ecosystem Listings and Releases)
 
-## 2. LobeHub 收录条目
+- **Name**: spss-studio-mcp
+- **One-liner**: Make SPSS an Agent's "statistics engine + chart factory": paper-ready charts, deep result parsing, real-machine method verification, and safe execution.
+- **Category**: data-analysis / statistics / mcp-server
+- **Tags**: `spss` `statistics` `mcp` `chart` `result-parsing` `psychology` `social-science`
+- **Core capabilities (from the technical report)**:
+  - 11 families of paper-ready charts (PNG/TIFF/EMF, 300 dpi)
+  - Statistical summaries for 16 analysis families (t/F/R/B/Wald/p/effect sizes)
+  - All 37+ tools verified on a real SPSS 32 installation
+  - Mediation / moderation tools (Baron & Kenny + Sobel)
+  - Safety layer (command blocking / allowlist / `dry_run` / audit)
 
-平台：LobeHub（Lobe Chat MCP/插件市场）。提交方式：通常为 GitHub 仓库提交
-描述文件或 PR。可复制以下条目：
+## 2. LobeHub Listing
 
-- 仓库：https://github.com/flupke91/spss-studio-mcp
-- LobeHub 插件市场提交入口：https://github.com/lobehub/lobe-chat-plugins
-  （创建 `plugins/<plugin-name>/` 目录，含 `plugin.json` + `README.md`）
+Platform: LobeHub (Lobe Chat MCP / plugin marketplace). Submission method: typically by submitting a description file or a PR to a GitHub repository. You may copy the entry below:
+
+- Repository: https://github.com/flupke91/spss-studio-mcp
+- LobeHub plugin marketplace submission entry: https://github.com/lobehub/lobe-chat-plugins
+  (create a `plugins/<plugin-name>/` directory containing `plugin.json` + `README.md`)
 
 ```yaml
-# lobehub 条目示例
+# LobeHub listing example
 name: spss-studio-mcp
 description: >-
-  SPSS Studio MCP：论文级图表导出（11 类图 PNG/TIFF/EMF @300dpi）、深度结果
-  解析（Markdown+JSON+统计摘要）、37+ 方法真机验证、中介/调节分析与安全执行
-  （危险拦截/白名单/dry_run/审计）。适用于心理学/管理学/社科研究。
+  SPSS Studio MCP: paper-ready chart export (11 chart types as PNG/TIFF/EMF
+  @300 dpi), deep result parsing (Markdown + JSON + statistical summaries),
+  37+ methods verified on a real machine, mediation/moderation analysis and
+  safe execution (dangerous-command blocking / allowlist / dry_run / audit).
+  Suitable for psychology / management / social-science research.
 category: data-analysis
 tags: [spss, statistics, chart, mcp]
 ```
 
-## 3. PulseMCP 收录条目
+## 3. PulseMCP Listing
 
-平台：PulseMCP（MCP 服务器目录）。提交方式：站点表单或 GitHub PR。
-建议填写：
+Platform: PulseMCP (MCP server directory). Submission method: on-site form or GitHub PR.
+Suggested values:
 
-- 提交入口：https://www.pulsemcp.com/submit
-- 仓库：https://github.com/flupke91/spss-studio-mcp
+- Submission entry: https://www.pulsemcp.com/submit
+- Repository: https://github.com/flupke91/spss-studio-mcp
 
 - **Name**: spss-studio-mcp
 - **Short description**: Paper-ready charts, deep result parsing and safe execution for IBM SPSS Statistics via MCP.
-- **Long description**: 引用 `README.md` 的功能清单与 `docs/technical_report.md` 摘要。
+- **Long description**: Cite the feature list in `README.md` and the summary in `docs/technical_report.md`.
 - **Transport**: stdio
-- **Auth**: none（本地 SPSS 授权）
+- **Auth**: none (authorised by the local SPSS licence)
 - **OS**: Windows
 
-## 4. GitHub Release v1.0 草稿
+## 4. GitHub Release v1.0 Draft
 
-见 `docs/release_notes_v1.0.md`（可直接粘贴到 Release 页面）。
+See `docs/release_notes_v1.0.md` (can be pasted directly into the Release page).
 
-## 5. 提交前检查清单
+## 5. Pre-Submission Checklist
 
-- [x] 功能与验证：37 工具真机验收（26 方法 + 11 工具）、11 类图 × PNG/EMF/TIFF
-- [x] boxplot 全格式修复（0.3.1）：EMF 非零（约 19 KB），PNG/TIFF 正常
-- [x] 文档：README / QUICK_START / docs（教程、技术报告、出图、解析、验证、安全）
-- [x] 安全：拦截/白名单/dry_run/审计 + `docs/security.md`
-- [x] CI：`.github/workflows/ci.yml`（lint + pytest）
-- [x] 许可证：MIT（含上游说明）
-- [x] 样例图：`examples/charts/*.png` 已用 0.3.1 模板重新归档（11 张，含修复后的 boxplot）
-- [ ] 发布账号操作：创建 GitHub release、提交 LobeHub/PulseMCP 条目
-- [ ] （建议）GitHub 仓库公开前检查：无敏感路径、无本地日志入库（`logs/` 已 gitignore）
+- [x] Features and verification: 37 tools verified on a real machine (26 methods + 11 tools), 11 chart families x PNG/EMF/TIFF
+- [x] Full-format boxplot fix (0.3.1): EMF is non-zero (about 19 KB), PNG/TIFF are normal
+- [x] Documentation: README / QUICK_START / docs (tutorial, technical report, charting, parsing, verification, security)
+- [x] Security: blocking / allowlist / `dry_run` / audit + `docs/security.md`
+- [x] CI: `.github/workflows/ci.yml` (lint + pytest)
+- [x] Licence: MIT (with upstream attribution)
+- [x] Sample charts: `examples/charts/*.png` re-archived with the 0.3.1 templates (11 images, including the fixed boxplot)
+- [ ] Publishing-account operations: create the GitHub release, submit the LobeHub/PulseMCP entries
+- [ ] (Recommended) Pre-publication check of the GitHub repository: no sensitive paths, no local logs committed (`logs/` is already gitignored)
 
-## 7. GitHub 发布步骤（发布账号操作）
+## 7. GitHub Release Steps (Publishing-Account Operations)
 
-- [x] 创建公开仓库 `flupke91/spss-studio-mcp` 并推送 `master`（2026-08-05）；
-- [x] 打 tag `v1.0.0` 并创建 Release（正文 = `docs/release_notes_v1.0.md`）；
-- [ ] 提交 LobeHub 条目（lobe-chat-plugins PR）；
-- [ ] 提交 PulseMCP 条目（pulsemcp.com/submit 表单）。
+- [x] Create the public repository `flupke91/spss-studio-mcp` and push `master` (2026-08-05);
+- [x] Tag `v1.0.0` and create the Release (body = `docs/release_notes_v1.0.md`);
+- [ ] Submit the LobeHub entry (lobe-chat-plugins PR);
+- [ ] Submit the PulseMCP entry (pulsemcp.com/submit form).
 
-## 6. 对外材料（②的成果，可直接引用）
+## 6. External Materials (Deliverables of Item ②, Ready to Cite)
 
-- 技术报告（论文稿）：`docs/technical_report.md`
-- 使用教程：`docs/tutorial.md`
-- 样例图：`examples/charts/*.png`（可作 README/收录页截图）
-- 验证记录：`docs/method_verification.md`、`docs/tool_verification.json`
+- Technical report (paper draft): `docs/technical_report.md`
+- Tutorial: `docs/tutorial.md`
+- Sample charts: `examples/charts/*.png` (can serve as README / listing screenshots)
+- Verification records: `docs/method_verification.md`, `docs/tool_verification.json`

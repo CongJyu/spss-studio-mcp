@@ -102,7 +102,7 @@ def test_format_run_result_appends_statistical_summary():
             "summary": {"text": "ANOVA: F(1, 118) = 15.012, p <.001."},
         }
     )
-    assert "### 统计摘要" in rendered
+    assert "### Statistical Summary" in rendered
     assert "ANOVA: F(1, 118) = 15.012" in rendered
 
 
@@ -110,4 +110,4 @@ def test_format_run_result_skips_empty_summary():
     rendered = server._format_run_result(
         {"error": None, "output_markdown": "table", "summary": {"text": ""}}
     )
-    assert "### 统计摘要" not in rendered
+    assert "### Statistical Summary" not in rendered

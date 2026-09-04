@@ -1,63 +1,84 @@
-# spss-studio-mcp 快速开始
+# SPSS Studio MCP — Quick Start
 
-> 3 步完成部署，5 分钟开始使用（已在 IBM SPSS Statistics 32 真机验证）
+> **Language:** [English](QUICK_START.md) · [繁體中文（香港）](QUICK_START.zh-Hant-HK.md)
+
+> Deploy in 3 steps and start within 5 minutes. Verified on real IBM SPSS
+> Statistics 32 on **Windows and macOS**.
 
 ---
 
-## 第 1 步：安装
+## Step 1 — Install
+
+**Windows** (PowerShell):
 
 ```powershell
 cd D:\opencode\spss-studio-mcp
 pip install -e ".[dev]"
-spss-studio-mcp status   # 应显示 SPSS batch: OK
+spss-studio-mcp status   # should show: SPSS batch: OK
 ```
 
-## 第 2 步：配置 MCP 客户端
+**macOS** (Python ≥3.10; SPSS 32 for Mac is auto-discovered under
+`/Applications/IBM SPSS Statistics`):
+
+```bash
+cd ~/Code/spss-studio-mcp
+bash scripts/install_macos.sh          # creates .venv, installs deps, configure-claude
+.venv/bin/spss-studio-mcp status       # SPSS batch: OK
+```
+
+## Step 2 — Configure the MCP client
 
 ```powershell
-spss-studio-mcp configure-codex     # Codex（~/.codex/config.toml）
-spss-studio-mcp configure-claude    # Claude Code（~/.claude.json）
-spss-studio-mcp setup-info          # 手动配置片段
+spss-studio-mcp configure-codex     # Codex (~/.codex/config.toml)
+spss-studio-mcp configure-claude    # Claude Code (~/.claude.json)
+spss-studio-mcp setup-info          # print the manual config snippet
 ```
 
-## 第 3 步：使用
+## Step 3 — Use it
 
-### 统计分析
+### Statistical analysis
 
-直接向客户端描述需求，例如：
+Describe the task to your client in natural language, e.g.:
 
-- `对 examples/data/survey_study.sav 做描述统计和可靠性分析`
-- `用 examples/data/experiment_study.sav 做独立样本 t 检验（group 分组，posttest）`
-- `对 examples/data/mediation_study.sav 做中介分析：autonomy → satisfaction → performance`
+- `Run descriptive statistics and reliability analysis on examples/data/survey_study.sav`
+- `Independent-samples t-test on examples/data/experiment_study.sav (grouping: group, dependent: posttest)`
+- `Mediation analysis on examples/data/mediation_study.sav: autonomy → satisfaction → performance`
 
-### 论文级出图
+### Paper-ready charts
 
-- `画 examples/data/survey_study.sav 学习投入总分的直方图（带正态密度），PNG 300dpi`
-- `用 examples/data/survival_study.sav 画按 treatment 分组的 KM 生存曲线`
-- `用 examples/data/experiment_study.sav 画后测成绩按组别的箱线图`
+- `Histogram with normal density of engagement_total in examples/data/survey_study.sav, PNG 300dpi`
+- `Kaplan-Meier survival curves grouped by treatment on examples/data/survival_study.sav`
+- `Boxplot of posttest scores by group on examples/data/experiment_study.sav`
 
-所有图表工具都会返回 1950×1500 @300dpi 的文件路径，可直接用于投稿。
+Every chart tool returns a 1950×1500 @300 dpi file path ready for submission.
 
-### 结构化结果
+### Structured results
 
-- 调用 `spss_structured_result` 获得 `{markdown, json, files, warnings}` 统一结构；
-  统计摘要（t/F/r/B/p 等）会自动出现在各分析工具的返回末尾（`### 统计摘要`）。
+- Call `spss_structured_result` to get the unified structure
+  `{markdown, json, files, warnings}`; the statistical summary
+  (t / F / r / B / p, ...) is appended at the end of every analysis tool's
+  output under a `### Statistical Summary` heading.
 
-## 安全
+## Safety
 
-- 危险命令（HOST / ERASE / DELETE FILE 等）会被拦截；
-- 数据文件需位于 `examples/`、系统临时目录或 `SPSS_ALLOWED_DIRS` 指定目录；
-- `spss_run_syntax(..., dry_run=True)` 可先校验不执行；
-- 审计日志默认写入 `logs/audit.jsonl`（可用 `SPSS_AUDIT_LOG` 改路径）。
+- Dangerous commands (`HOST` / `ERASE` / `DELETE FILE`, ...) are blocked;
+- Data files must live under `examples/`, the system temp dir, or a directory
+  declared in `SPSS_ALLOWED_DIRS`;
+- `spss_run_syntax(..., dry_run=True)` validates without executing;
+- Audit logs are written to `logs/audit.jsonl` by default
+  (override with `SPSS_AUDIT_LOG`).
 
-## 样例与文档
+## Samples & docs
 
-- 样例数据与归档图：`examples/`
-- 文档：`docs/`（出图管线 PoC、结果解析、方法验证记录）
-- Agent 完整教程：[`docs/tutorial.md`](docs/tutorial.md)（可直接复制安装和分析 Prompt）
+- Sample datasets and archived charts: `examples/`
+- Documentation: `docs/` (chart-pipeline PoC, result parsing, verification records)
+- Full agent tutorial: [`docs/tutorial.md`](docs/tutorial.md)
 
-## 常见问题
+## FAQ
 
-- **启动慢**：首次引擎启动约 15–20 秒，之后为常驻会话。
-- **提示未授权**：确保 SPSS 试用/正式授权可用，勿同时开多个 SPSS 会话。
-- **数据文件被拒**：把文件放入 `examples/data/`，或用 `SPSS_ALLOWED_DIRS` 声明目录。
+- **Slow startup**: first engine start takes ~15–20 s; afterwards it stays
+  resident as a persistent session.
+- **"Not licensed"**: make sure an SPSS trial or full license is available, and
+  avoid running several SPSS sessions at once.
+- **Data file rejected**: put the file under `examples/data/`, or declare its
+  directory with `SPSS_ALLOWED_DIRS`.

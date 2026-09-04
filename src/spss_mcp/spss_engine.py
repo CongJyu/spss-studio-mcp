@@ -40,7 +40,12 @@ def _make_engine_script(spss_home: str) -> str:
         "import sys, os, json",
         f"SPSS_HOME = {spss_home_r}",
         'os.environ["PATH"] = SPSS_HOME + os.pathsep + os.environ.get("PATH", "")',
-        'sys.path.insert(0, os.path.join(SPSS_HOME, "Python3", "Lib", "site-packages"))',
+        # Windows bundles the SPSS extension modules under <install>/Python3/Lib/
+        # site-packages; on macOS the bundled interpreter (statisticspython3 ->
+        # python3.13) already imports `spss` from the Resources/Python3 venv, so
+        # the extra sys.path entry is Windows-only.
+        "if sys.platform.startswith('win'):",
+        "    sys.path.insert(0, os.path.join(SPSS_HOME, 'Python3', 'Lib', 'site-packages'))",
         "import spss",
         "",
         "# ── Start SPSS engine once ──",
@@ -149,6 +154,12 @@ class SpssEngine:
     def __init__(self):
         self._proc: Optional[asyncio.subprocess.Process] = None
         self._lock = asyncio.Lock()
+        # Event loop the current engine subprocess was started in.  An SPSS child
+        # is bound to the loop that spawned it; if a client (or a test) runs tools
+        # from a fresh event loop, a stale engine must be torn down and restarted
+        # rather than reused across loops (its pipes would raise
+        # "attached to a different loop").
+        self._started_loop = None
 
     async def _read_startup_diagnostics(self) -> str:
         """Collect whatever stderr and exit information is available during startup failure."""
@@ -183,9 +194,22 @@ class SpssEngine:
 
     # ── Lifecycle ──────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _running_loop():
+        """Return the running event loop, or None when called outside a loop."""
+        try:
+            return asyncio.get_running_loop()
+        except RuntimeError:
+            return None
+
     def is_alive(self) -> bool:
-        """True if the engine process is running."""
-        return self._proc is not None and self._proc.returncode is None
+        """True if the engine process is running *in the current event loop*."""
+        if self._proc is None or self._proc.returncode is not None:
+            return False
+        # An SPSS child spawned under a previous (now-closed) loop must not be
+        # reused: its pipes belong to that loop and awaiting them here raises
+        # "attached to a different loop".  Treat it as dead so callers restart.
+        return self._started_loop is self._running_loop()
 
     async def ensure_started(self) -> tuple[bool, str]:
         """
@@ -197,6 +221,16 @@ class SpssEngine:
         return await self._start()
 
     async def _start(self) -> tuple[bool, str]:
+        # Reap any leftover process from a previous event loop before launching a
+        # fresh one on the current loop.
+        if self._proc is not None and self._proc.returncode is None:
+            try:
+                self._proc.kill()
+            except Exception:
+                pass
+            self._proc = None
+        self._started_loop = None
+
         spss_exe = get_spss_executable()
         if not spss_exe:
             return False, "IBM SPSS Statistics not found on this machine."
@@ -235,6 +269,8 @@ class SpssEngine:
             )
         except Exception as e:
             return False, f"Failed to launch SPSS process: {e}"
+
+        self._started_loop = self._running_loop()
 
         startup_timeout = get_startup_timeout()
 
@@ -293,16 +329,23 @@ class SpssEngine:
     async def stop(self):
         """Gracefully shut down the engine process."""
         if self._proc and self._proc.returncode is None:
+            same_loop = self._started_loop is self._running_loop()
             try:
-                self._proc.stdin.write(b'{"exit":true}\n')
-                await self._proc.stdin.drain()
-                await asyncio.wait_for(self._proc.wait(), timeout=15)
+                if same_loop:
+                    self._proc.stdin.write(b'{"exit":true}\n')
+                    await self._proc.stdin.drain()
+                    await asyncio.wait_for(self._proc.wait(), timeout=15)
+                else:
+                    # Started under a different (now-closed) loop — a graceful
+                    # drain would await futures owned by that loop.  Just kill.
+                    self._proc.kill()
             except Exception:
                 try:
                     self._proc.kill()
                 except Exception:
                     pass
         self._proc = None
+        self._started_loop = None
 
     # ── Execution ──────────────────────────────────────────────────────────────
 

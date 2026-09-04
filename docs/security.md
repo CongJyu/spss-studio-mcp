@@ -1,47 +1,47 @@
-# 安全层（P4）
+# Security Layer (P4)
 
-> 实现日期：2026-08-05 ｜ 真机验证：SPSS 32.0.0（dry_run / 危险拦截 / 审计全通过）
+> **Language:** [English](security.md) · [繁體中文（香港）](security.zh-Hant-HK.md)
 
-## 模块
+> Implementation date: 2026-08-05 | Real-machine verification: SPSS 32.0.0 (dry_run / dangerous-command blocking / audit all passed)
+
+## Modules
 
 `src/spss_mcp/security.py`
 
-| 能力 | 实现 |
+| Capability | Implementation |
 |------|------|
-| 危险语句拦截 | `check_syntax_safety(syntax)`：行首匹配 `HOST / ERASE / DELETE FILE / FILE HANDLE / INSERT FILE / SCRIPT / CD / SYSTEM`，避免变量名误报 |
-| 路径白名单 | `validate_data_file(path)`：允许 `SPSS_ALLOWED_DIRS`（分号分隔）、项目 `examples/`、系统临时目录；拒绝不存在或白名单外路径 |
-| 审计日志 | `audit(entry)`：JSONL 追加写入 `logs/audit.jsonl`（`SPSS_AUDIT_LOG` 可改路径），失败不阻断分析 |
-| dry_run | `spss_run_syntax(..., dry_run=True)`：只校验语法安全与路径，不启动执行 |
+| Dangerous-command blocking | `check_syntax_safety(syntax)`: matches `HOST / ERASE / DELETE FILE / FILE HANDLE / INSERT FILE / SCRIPT / CD / SYSTEM` at the start of a line, avoiding false positives from variable names |
+| Path allowlist | `validate_data_file(path)`: allows `SPSS_ALLOWED_DIRS` (semicolon-separated), the project's `examples/`, and the system temporary directory; rejects paths that do not exist or are outside the allowlist |
+| Audit logging | `audit(entry)`: appends JSONL to `logs/audit.jsonl` (path can be changed with `SPSS_AUDIT_LOG`); a failure never blocks analysis |
+| dry_run | `spss_run_syntax(..., dry_run=True)`: only validates syntax safety and paths; does not start execution |
 
-## 集成点
+## Integration Points
 
-- `spss_runner.run_syntax`：统一安全闸（所有工具共用）——先拦截危险命令，
-  再校验 `data_file` 参数与语法中的 `GET FILE='...'` 路径；每次成功执行写审计。
-- `server.spss_run_syntax`：新增 `dry_run` 参数；`spss_structured_result` 同走
-  `run_syntax` 安全闸。
+- `spss_runner.run_syntax`: the unified security gate (shared by all tools) — it first blocks dangerous commands, then validates the `data_file` parameter and the `GET FILE='...'` paths in the syntax; every successful execution writes an audit entry.
+- `server.spss_run_syntax`: adds the `dry_run` parameter; `spss_structured_result` also passes through the `run_syntax` security gate.
 
-## 审计事件
+## Audit Events
 
-| event | 含义 |
+| event | Meaning |
 |-------|------|
-| `blocked / dangerous_syntax` | 语法含危险命令，未执行 |
-| `blocked / path` | 数据文件不存在或不在白名单，未执行 |
-| `dry_run` | dry_run 校验请求（含被拦命令列表） |
-| `syntax_run` | 正常执行（含语法首行摘要、data_file、success、error） |
+| `blocked / dangerous_syntax` | The syntax contains dangerous commands; not executed |
+| `blocked / path` | The data file does not exist or is not on the allowlist; not executed |
+| `dry_run` | A dry_run validation request (includes the list of blocked commands) |
+| `syntax_run` | Normal execution (includes a summary of the first syntax line, data_file, success, error) |
 
-## 真机验证记录
+## Real-Machine Verification Log
 
 ```
-dry_run:      Dry run: syntax is safe to execute ...
-HOST 语法:    Error: Syntax blocked: dangerous commands HOST.
-正常分析:     通过（FREQUENCIES 正常返回）
-外部路径:     Error: Data file does not exist: D:/outside/x.sav
-审计日志:     dry_run / blocked / syntax_run 事件均落盘
+dry_run:          Dry run: syntax is safe to execute ...
+HOST syntax:      Error: Syntax blocked: dangerous commands HOST.
+Normal analysis:  Passed (FREQUENCIES returns normally)
+External path:    Error: Data file does not exist: D:/outside/x.sav
+Audit log:        dry_run / blocked / syntax_run events all written to disk
 ```
 
-## 配置
+## Configuration
 
 ```powershell
-$env:SPSS_ALLOWED_DIRS = "C:\data;D:\research\data"   # 额外允许的数据目录
-$env:SPSS_AUDIT_LOG    = "D:\logs\spss-audit.jsonl"   # 审计日志位置
+$env:SPSS_ALLOWED_DIRS = "C:\data;D:\research\data"   # additional allowed data directories
+$env:SPSS_AUDIT_LOG    = "D:\logs\spss-audit.jsonl"   # audit log location
 ```

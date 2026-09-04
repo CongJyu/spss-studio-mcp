@@ -1,71 +1,68 @@
-# P2 结果解析：Markdown + JSON + 统计摘要
+# P2 Result Parsing: Markdown + JSON + Statistical Summary
 
-> 实现日期：2026-08-05 ｜ 依据 SPSS Statistics 32.0.0 真实 OMS TEXT 输出开发
+> **Language:** [English](result_parsing.md) · [繁體中文（香港）](result_parsing.zh-Hant-HK.md)
 
-## 目标
+> Implementation date: 2026-08-05 | Developed against the real OMS TEXT output of SPSS Statistics 32.0.0
 
-把 SPSS 文本输出转成机器可读的 JSON（表格级），并自动抽取论文汇报所需的
-关键统计量（t / F / r / B / Wald / p / 效应量等），最后统一为
-`{markdown, json, files, warnings}` 返回结构。
+## Goal
 
-## 模块
+Turn SPSS text output into machine-readable JSON (at table level), automatically extract the key statistics needed for reporting in a paper (t / F / r / B / Wald / p / effect sizes, etc.), and finally unify everything into the `{markdown, json, files, warnings}` return structure.
+
+## Modules
 
 `src/spss_mcp/result_parser.py`
 
-| 函数 | 作用 |
+| Function | Purpose |
 |------|------|
-| `parse_tables(raw_text)` | 行扫描状态机切分 SPSS 表块 → `[{title, headers, rows}]`（JSON 友好） |
-| `summarize_analysis(raw_text)` | 按表标题识别分析类型，抽取统计量并生成自然语言结论 |
-| `build_result_payload(result)` | 组装统一结构 `{markdown, json, files, warnings}` |
+| `parse_tables(raw_text)` | Line-scanning state machine that splits SPSS table blocks into `[{title, headers, rows}]` (JSON-friendly) |
+| `summarize_analysis(raw_text)` | Identifies the analysis type from the table title, extracts statistics, and generates a plain-language conclusion |
+| `build_result_payload(result)` | Assembles the unified structure `{markdown, json, files, warnings}` |
 
-`src/spss_mcp/spss_runner.py`：`run_syntax` 返回新增 `tables` / `summary` / `files` 字段（增量，不破坏现有工具）。
+`src/spss_mcp/spss_runner.py`: the return value of `run_syntax` now includes additional `tables` / `summary` / `files` fields (additive; existing tools are not broken).
 
-`src/spss_mcp/server.py`：新增工具 **`spss_structured_result`**，执行任意语法并返回统一 JSON 结构；
-同时 `_format_run_result` 会自动把统计摘要追加到所有分析工具（`spss_t_test`/`spss_regression`/`spss_anova` 等）的返回末尾（`### 统计摘要` 段落）。
+`src/spss_mcp/server.py`: adds a new tool, **`spss_structured_result`**, which runs arbitrary syntax and returns a unified JSON structure; at the same time, `_format_run_result` automatically appends the statistical summary to the end of the return of every analysis tool (`spss_t_test` / `spss_regression` / `spss_anova`, etc.), as a `### Statistical Summary` section.
 
-## 解析规则要点（SPSS TEXT 真实布局）
+## Parsing Rule Highlights (Real SPSS TEXT Layout)
 
-- 表标题是行首无缩进的独立短行；缩进行是表头/数据的一部分，不会被误判为新表。
-- 单空格连接的单元格（行标签-数值粘连、`Kolmogorov-Smirnov(a) Shapiro-Wilk` 等）通过
-  「整行文本 + 数值正则」处理，不依赖严格列对齐。
-- 表头判定启发式：首行含小数（`.000`、`-3.875`）视为数据行；否则视为表头
-  （`-2 Log likelihood` 这类含整数的表头仍正确归为表头）。
-- 子标题（如 `Dependent Variable xxx`）只并入标题一次，且必须是不含数字的纯文本行。
-- `Notes` 块整体跳过；带 `(a)` 脚注的数字可解析；p 值 `.000` 汇报为 `<.001`。
+- Table titles are short standalone lines at the start of a line with no indentation; indented lines are part of a header/data row and are never mistaken for a new table.
+- Cells joined by a single space (row-label-to-value concatenations such as `Kolmogorov-Smirnov(a) Shapiro-Wilk`) are handled by an "entire-line text + numeric regex" approach rather than relying on strict column alignment.
+- Header-detection heuristic: a first line containing decimals (`.000`, `-3.875`) is treated as a data row; otherwise it is treated as a header (headers that contain integers, such as `-2 Log likelihood`, are still correctly classified as headers).
+- A subtitle (e.g., `Dependent Variable xxx`) is merged into the title only once, and only when the line is plain text containing no digits.
+- `Notes` blocks are skipped entirely; numbers carrying an `(a)` footnote can still be parsed; p values of `.000` are reported as `<.001`.
 
-## 统计摘要覆盖（16 类真实输出验证）
+## Statistical Summary Coverage (Verified on 16 Real Outputs)
 
-| 分析 | 表 | 提取项 | 示例输出 |
+| Analysis | Tables | Extracted items | Example output |
 |------|----|--------|----------|
-| 描述统计 | `Descriptive Statistics` | 每变量 N/Min/Max/Mean/Std | `score: N=120, Mean=54.20, SD=11.23` |
-| 独立样本 t 检验 | `Independent Samples Test` / `Group Statistics` | t、df、p、均值差、组统计 | `t(118) = -3.88, p < .001, MD = -7.52` |
-| 配对 t 检验 | `Paired Samples Test` | t、df、p、均值差 | `t(119) = -12.84, p < .001, MD = -9.88` |
-| 单因素 ANOVA | `ANOVA` + Levene | F、df1、df2、p、Levene F | `F(1, 118) = 15.01, p < .001` |
-| 多因素 ANOVA | `Tests of Between-Subjects Effects` | 各效应 F/df1/p/偏η² | `gender: F(1, 194) = .34, η² = .002` |
-| 相关 | `Correlations` | r、p | `y-x: r = .42, p < .001` |
-| 线性回归 | `Model Summary`/`ANOVA`/`Coefficients` | R、R²、F、B/Beta/t/p | `R = .82, R² = .68; x: B = .92, Beta = .48` |
-| Logistic 回归 | `Model Summary`/`Variables in the Equation` | -2LL、Cox&Snell/Nagelkerke R²、B/SE/Wald/Exp(B)/p | `x: B = .19, Wald = .16, p = .69, OR = 1.21` |
-| 频数 | `Statistics` | N/Mean/Median/Mode/Std | `N=120, Mean=.50` |
-| 卡方 | `Chi-Square Tests` | χ²、df、p | `χ²(2) = .61, p = .739` |
-| 可靠性 | `Reliability Statistics` | Cronbach's α、题项数 | `α = .82 (12 items)` |
-| 非参数 | `Test Statistics` | Mann-Whitney U/Wilcoxon Z/K-W H、df、p | `U = 1088.50, z = -3.72, p < .001` |
-| 正态性 | `Tests of Normality` | Shapiro-Wilk W、K-S D、df、p | `W(200) = .99, p = .101` |
-| 因子分析 | `KMO and Bartlett's Test` / `Total Variance Explained` | KMO、Bartlett χ²、特征值、累计方差 | `KMO = .50, χ²(66) = 64.68` |
+| Descriptives | `Descriptive Statistics` | Per-variable N/Min/Max/Mean/Std | `score: N=120, Mean=54.20, SD=11.23` |
+| Independent-samples t test | `Independent Samples Test` / `Group Statistics` | t, df, p, mean difference, group statistics | `t(118) = -3.88, p < .001, MD = -7.52` |
+| Paired-samples t test | `Paired Samples Test` | t, df, p, mean difference | `t(119) = -12.84, p < .001, MD = -9.88` |
+| One-way ANOVA | `ANOVA` + Levene | F, df1, df2, p, Levene F | `F(1, 118) = 15.01, p < .001` |
+| Factorial ANOVA | `Tests of Between-Subjects Effects` | Per-effect F/df1/p/partial η² | `gender: F(1, 194) = .34, η² = .002` |
+| Correlation | `Correlations` | r, p | `y-x: r = .42, p < .001` |
+| Linear regression | `Model Summary` / `ANOVA` / `Coefficients` | R, R², F, B/Beta/t/p | `R = .82, R² = .68; x: B = .92, Beta = .48` |
+| Logistic regression | `Model Summary` / `Variables in the Equation` | -2LL, Cox & Snell/Nagelkerke R², B/SE/Wald/Exp(B)/p | `x: B = .19, Wald = .16, p = .69, OR = 1.21` |
+| Frequencies | `Statistics` | N/Mean/Median/Mode/Std | `N=120, Mean=.50` |
+| Chi-square | `Chi-Square Tests` | χ², df, p | `χ²(2) = .61, p = .739` |
+| Reliability | `Reliability Statistics` | Cronbach's α, number of items | `α = .82 (12 items)` |
+| Nonparametric | `Test Statistics` | Mann-Whitney U/Wilcoxon Z/K-W H, df, p | `U = 1088.50, z = -3.72, p < .001` |
+| Normality | `Tests of Normality` | Shapiro-Wilk W, K-S D, df, p | `W(200) = .99, p = .101` |
+| Factor analysis | `KMO and Bartlett's Test` / `Total Variance Explained` | KMO, Bartlett χ², eigenvalues, cumulative variance | `KMO = .50, χ²(66) = 64.68` |
 
-## 测试
+## Tests
 
-- 16 个真实输出 fixture：`tests/fixtures/spss_outputs/*.txt`
-- `tests/test_result_parser.py`：23 项断言覆盖全部类型的解析、摘要与统一结构
-- 真机验证：`run_syntax` 对 T-TEST 返回完整 `summary` 与 `tables`
+- 16 real-output fixtures: `tests/fixtures/spss_outputs/*.txt`
+- `tests/test_result_parser.py`: 23 assertions cover parsing, summaries, and the unified structure for all types
+- Real-machine verification: `run_syntax` returns complete `summary` and `tables` for T-TEST
 
-## 使用
+## Usage
 
 ```python
 from spss_mcp.spss_runner import run_syntax
 result = await run_syntax("T-TEST GROUPS=g(0 1) /VARIABLES=score.")
-result["summary"]["text"]   # 自然语言结论
-result["summary"]["summaries"]  # 结构化统计量
-result["tables"]            # JSON 友好表格
+result["summary"]["text"]   # plain-language conclusion
+result["summary"]["summaries"]  # structured statistics
+result["tables"]            # JSON-friendly tables
 ```
 
-MCP 客户端可调用 `spss_structured_result` 获得统一 JSON 返回。
+MCP clients can call `spss_structured_result` to get the unified JSON return.

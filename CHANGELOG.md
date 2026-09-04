@@ -1,48 +1,101 @@
 # Changelog
 
+> **Language:** [English](CHANGELOG.md) · [繁體中文（香港）](CHANGELOG.zh-Hant-HK.md)
+
+## [0.4.0] - 2026-09-04
+
+### Added
+- **macOS port**: verified on real SPSS Statistics 32 for Mac
+  - Method verification **26/26** and tool verification **11/11**, fully aligned
+    with the Windows baseline
+  - Charts (11 kinds) PNG / TIFF **11/11** pass (1950×1500 @300 dpi); per-case
+    results in `docs/method_verification_macos.json`,
+    `docs/tool_verification_macos.json` and `docs/macos_verification.md`
+- One-command installer `scripts/install_macos.sh` (creates a venv, installs
+  deps, runs `configure-claude`)
+- `pyproject.toml` now declares the `Operating System :: MacOS :: MacOS X`
+  classifier
+
+### Changed
+- Engine subprocess is now event-loop safe: `spss_engine.py` records the loop it
+  was started in, `is_alive()` only reports `True` on the same loop, and the
+  engine is rebuilt across loops — fixes `Task attached to a different loop`
+  seen in tests / multi-loop clients
+- Relative data paths (`data_file` and in-syntax `GET FILE=`) are resolved to
+  absolute paths before submission (`spss_runner.py`) — fixes
+  `The filename is not valid` caused by the macOS engine's different working
+  directory
+- On macOS, opening the `.spv` viewer now uses `open` and is off by default
+  unless `SPSS_OPEN_VIEWER=1`
+- `server.py` line endings normalised from legacy CR to LF
+- User-facing tool output localised to English: the summary is appended under a
+  `### Statistical Summary` heading, and the `spss_mediation` /
+  `spss_moderation` reports are in English
+
+### Notes
+- Documentation is maintained in **English** (primary, current filenames) and
+  **Traditional Chinese (Hong Kong)** (mirrors named `*.zh-Hant-HK.md`); the two
+  editions carry identical meaning.
+- SPSS Statistics for Mac does not emit Windows EMF vector charts (its
+  `OMS FORMAT=DOC` archive contains PNG raster); on macOS use PNG / TIFF. EMF
+  remains available on Windows; an EMF request on macOS returns a clear error.
+
 ## [0.3.1] - 2026-08-05
 
 ### Fixed
-- `spss_chart_boxplot`：GGRAPH `ELEMENT: schema` 在 SPSS 32 对真实数据报
-  `outlier was found inside fences`（个案值恰落在箱须线上），且 DOCX/EMF 导出为
-  0 字节；改为 `EXAMINE /PLOT BOXPLOT` 传统图模板，PNG/TIFF/EMF 均真机验证通过
-  （EMF 18996 字节非零）。修复由实战作业验证触发，见项目规划 5.3。
+- `spss_chart_boxplot`: the GGRAPH `ELEMENT: schema` template raised
+  `outlier was found inside fences` on SPSS 32 with real data (a case landed
+  exactly on the whisker line) and exported 0-byte DOCX/EMF; switched to the
+  classic `EXAMINE /PLOT BOXPLOT` template. PNG / TIFF / EMF all verified on a
+  real machine (EMF 18996 bytes, non-zero). Triggered by a coursework
+  verification; see project plan §5.3.
 
 ## [0.3.0] - 2026-08-05
 
 ### Added
-- P3 方法验证：26 个分析方法真机验收 + `scripts/method_verification.py`
-- 中介/调节工具：`spss_mediation`（三步回归 + Sobel）、`spss_moderation`（中心化交互）
-- P4 安全层：`security.py`（危险拦截/路径白名单/dry_run/审计 JSONL）
-- 补充工具验收：文件类 6 件 + 状态/语法/结构化 + `spss_genlin`（`scripts/tool_verification.py`）
-- 11 类图 × TIFF 全格式验证
-- 文档：教程、技术报告、生态收录/发布准备
+- P3 method verification: 26 analysis methods accepted on a real machine plus
+  `scripts/method_verification.py`
+- Mediation / moderation tools: `spss_mediation` (three-step regression +
+  Sobel), `spss_moderation` (mean-centred interaction)
+- P4 safety layer: `security.py` (dangerous-command blocking / path allowlist /
+  `dry_run` / JSONL audit)
+- Supplementary tool acceptance: 6 file utilities + status / syntax /
+  structured + `spss_genlin` (`scripts/tool_verification.py`)
+- All 11 chart kinds × TIFF full-format verification
+- Docs: tutorial, technical report, ecosystem / release preparation
 
 ### Fixed
-- `spss_correlations`：`TAILS(2)` → `TWOTAIL`
-- `spss_compute_scale_score`：`MEAN`/`NVALID` 参数逗号分隔
-- `spss_twostep_cluster`：子命令去 `=`、距离默认 LIKELIHOOD、删无效 OUTLIERS/PRINT
-- `spss_discriminant` / `spss_manova`：因子/组值范围；MANOVA 删废弃 METHOD
-- `spss_ordinal_regression`：删无效 `TEST=PARALLEL`
-- `spss_genlinmixed`：subject 名义化、删无效 PRINT
-- `spss_genlin`：`DISTRIBUTION` 并入 MODEL、`PRINT` 无等号
+- `spss_correlations`: `TAILS(2)` → `TWOTAIL`
+- `spss_compute_scale_score`: comma-separated `MEAN` / `NVALID` arguments
+- `spss_twostep_cluster`: removed `=` after subcommands, distance defaults to
+  LIKELIHOOD, dropped invalid OUTLIERS/PRINT
+- `spss_discriminant` / `spss_manova`: factor/group-value ranges; MANOVA drops
+  the deprecated METHOD subcommand
+- `spss_ordinal_regression`: dropped invalid `TEST=PARALLEL`
+- `spss_genlinmixed`: subject nominalisation, dropped invalid PRINT
+- `spss_genlin`: `DISTRIBUTION` folded into MODEL, PRINT without `=`
 
 ## [0.2.0] - 2026-08-04
 
 ### Added
-- P1 出图管线：11 类图 spec + GGRAPH 模板 + `spss_chart_*` 工具
-- OMS 导出双链路：HTML→base64 PNG 提取、DOCX→EMF 提取（SPSS 32 兼容）
-- 图片后处理：Pillow 缩放 1950×1500 + 300 dpi 元数据
-- P2 结果解析：`result_parser.py`（表格 JSON + 16 类统计摘要）
-- `spss_structured_result` 统一返回结构
-- 样例数据与归档：`examples/`（问卷/实验/生存/中介/纵向）
+- P1 chart pipeline: 11 chart-kind specs + GGRAPH templates + `spss_chart_*` tools
+- Dual OMS export paths: HTML → base64 PNG extraction, DOCX → EMF extraction
+  (SPSS 32 compatible)
+- Image post-processing: Pillow resize to 1950×1500 + 300 dpi metadata
+- P2 result parsing: `result_parser.py` (table JSON + 16-family statistical
+  summaries)
+- `spss_structured_result` unified return structure
+- Sample data and archives: `examples/` (survey / experiment / survival /
+  mediation / longitudinal)
 
 ### Fixed
-- GGRAPH 模板：末尾换行、`VARIABLES=x y`、bar 预计算 MEAN/MEANCI、line `color.interior`
-- `poc_chart` 样例数据补 DESCRIPTIVES（INPUT PROGRAM 无输出问题）
+- GGRAPH templates: trailing newline, `VARIABLES=x y`, bar pre-computes
+  MEAN/MEANCI, line `color.interior`
+- `poc_chart` sample data adds DESCRIPTIVES (INPUT PROGRAM produced no output)
 
 ## [0.1.0] - 2026-08-04
 
 ### Added
-- P0 基座：复用 MIT 引擎/runner/CLI、37 工具基线
-- 项目改名 `spss-studio-mcp`、`configure-codex`、CI（black/isort/pytest）
+- P0 foundation: reuse of the MIT-licensed engine / runner / CLI, 37-tool baseline
+- Project renamed to `spss-studio-mcp`, `configure-codex`, CI
+  (black / isort / pytest)

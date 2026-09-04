@@ -1,129 +1,161 @@
-# SPSS Studio MCP：论文级图表导出、深度结果解析与安全执行的研究助手
+# SPSS Studio MCP: A Research Assistant for Paper-Ready Chart Export, Deep Result Parsing, and Safe Execution
 
-> 技术报告 ｜ 2026-08-05 ｜ 实测环境：Windows + IBM SPSS Statistics 32.0.0
+> **Language:** [English](technical_report.md) · [繁體中文（香港）](technical_report.zh-Hant-HK.md)
 
-## 摘要
+> Technical report | 2026-08-05 | Verified environment: Windows + IBM SPSS Statistics 32.0.0
 
-SPSS 是心理学、管理学与社会科学研究中事实上的标准统计软件，但现有 MCP
-（Model Context Protocol）生态只实现了"把语法交给 SPSS、返回文本表格"的薄封装：
-论文级图片需人工在 Viewer 导出、结果只能阅读不能结构化消费、LLM 生成的语法
-缺乏安全护栏。本文报告 **SPSS Studio MCP**——一个面向 SPSS 的 MCP 服务器，
-以四个互补层补齐缺口：（1）**论文级出图管线**，11 类图一键导出 PNG/TIFF/EMF
-（300 dpi）；（2）**深度结果解析**，OMS 文本→Markdown+JSON 表格与 16 类分析的
-统计摘要；（3）**方法真机验证**，37 个工具在真实 SPSS 上逐方法验收并修复
-7+1 处版本兼容问题；（4）**安全执行层**，危险语句拦截、路径白名单、dry_run
-与审计日志。全部能力在 SPSS 32 真机验证通过。
+## Abstract
 
-## 1 背景与问题
+SPSS is the de facto standard statistics software in psychology, management,
+and social-science research, but the existing MCP (Model Context Protocol)
+ecosystem only provides a thin wrapper that "hands the syntax to SPSS and
+returns text tables": paper-ready images must be exported by hand in the
+Viewer, results can be read but not consumed in a structured way, and
+LLM-generated syntax lacks safety guardrails. This report presents **SPSS Studio
+MCP** — an MCP server for SPSS that closes these gaps with four complementary
+layers: (1) a **paper-ready chart pipeline**, exporting 11 chart kinds to
+PNG/TIFF/EMF (300 dpi) in one call; (2) **deep result parsing**, turning OMS
+text into Markdown + JSON tables and statistical summaries for 16 analysis
+families; (3) **real-machine method verification**, with all 37 tools accepted
+method by method on a real SPSS and 7+1 version-compatibility issues found and
+fixed; and (4) a **safe execution layer** that blocks dangerous statements,
+allowlists data paths, and provides `dry_run` and audit logs. Every capability
+has been verified on a real SPSS 32 installation.
 
-### 1.1 SPSS MCP 生态的四个缺口
+## 1 Background and Problem
 
-对现有 SPSS MCP 项目（参考 `Exekiel179/SPSS-MCP`，MIT）的源码复核显示：
+### 1.1 Four gaps in the SPSS MCP ecosystem
 
-| 缺口 | 现状 |
+A source review of existing SPSS MCP projects (reference `Exekiel179/SPSS-MCP`,
+MIT) shows:
+
+| Gap | Current state |
 |------|------|
-| G1 论文级出图缺失 | 仅 `OMS FORMAT=SPV` 把图表锁进二进制 .spv，全库无 OMS IMAGE/GGRAPH |
-| G2 结果解析浅 | 只有文本→Markdown 表格，无 JSON、无统计摘要 |
-| G3 方法代码正确性未验证 | 37 工具已实现但从未真机样例验证 |
-| G4 安全语法层薄弱 | 只有语法校验，无白名单/拦截/dry_run/审计 |
+| G1 No paper-ready chart export | Only `OMS FORMAT=SPV` locks charts inside the binary .spv; the whole codebase has no OMS IMAGE/GGRAPH |
+| G2 Shallow result parsing | Text-to-Markdown tables only; no JSON, no statistical summary |
+| G3 Method code correctness unverified | 37 tools are implemented but have never been verified against real-machine samples |
+| G4 Weak syntax safety layer | Syntax validation only; no allowlist / blocking / dry_run / audit |
 
-### 1.2 动机
+### 1.2 Motivation
 
-对无多模态能力的文本 LLM，数值统计可用 Python 完成，但**论文级图片无法自行
-闭环**——SPSS 的确定性渲染（语法给定即出图、期刊级字号/DPI）是唯一不可替代
-价值。本项目把"统计引擎 + 制图工厂"做成可交付物，并让结果可被机器消费。
+For a text-only LLM without multimodal ability, numeric statistics can be done
+in Python, but **paper-ready images cannot be produced end-to-end on its own** —
+SPSS's deterministic rendering (given the syntax, an image comes out, at
+journal-grade type sizes / DPI) is the one irreplaceable value. This project
+packages a "statistics engine + chart factory" as a deliverable and makes the
+results machine-consumable.
 
-## 2 系统设计
+## 2 System Design
 
 ```
-客户端 (Codex / Claude / Cursor)
+Client (Codex / Claude / Cursor)
         │  MCP stdio
         ▼
-工具层   37+ 分析方法 + 11 图表 + 中介/调节 + 结构化结果
+Tool layer    37+ analysis methods + 11 charts + mediation/moderation + structured results
         ▼
-引擎层   SPSS Python3 XD API 持久会话 (spss.StartSPSS / spss.Submit)
+Engine layer  SPSS Python3 XD API persistent session (spss.StartSPSS / spss.Submit)
         ▼
-输出层   OMS TEXT (表格) / HTML (PNG) / DOCX (EMF) + 安全闸 + 审计
+Output layer  OMS TEXT (tables) / HTML (PNG) / DOCX (EMF) + safety gate + audit
 ```
 
-- **持久引擎**：单个 SPSS Python3 子进程常驻，避免每次 15–20 秒启动开销。
-- **模板化语法**：所有出图与分析走预定义模板（Pydantic 校验），LLM 不能自由生成 GPL/语法。
-- **统一返回**：`{markdown, json, files, warnings}`。
+- **Persistent engine**: a single resident SPSS Python3 subprocess avoids the
+  15–20 s startup cost on every call.
+- **Templated syntax**: all charting and analysis goes through predefined
+  templates (validated with Pydantic); the LLM cannot freely generate GPL /
+  syntax.
+- **Unified return**: `{markdown, json, files, warnings}`.
 
-## 3 关键实现与版本兼容性发现
+## 3 Key Implementation and Version-Compatibility Findings
 
-### 3.1 SPSS 32 移除 `OMS FORMAT=IMAGE`（重要发现）
+### 3.1 SPSS 32 removes `OMS FORMAT=IMAGE` (key finding)
 
-规划阶段依赖旧版 `OMS /DESTINATION FORMAT=IMAGE IMAGEROOT=...`，在 SPSS 32
-真机被拒绝（`Unknown keyword or subcommand: IMAGE`）。实测矩阵（节选）：
+The planning phase relied on the legacy `OMS /DESTINATION FORMAT=IMAGE
+IMAGEROOT=...`, which a real SPSS 32 rejects (`Unknown keyword or subcommand:
+IMAGE`). Real-machine test matrix (excerpt):
 
-| 变体 | SPSS 32 结果 |
+| Variant | SPSS 32 result |
 |------|-------------|
-| `FORMAT=IMAGE ... IMAGEROOT=...` | ✗ 不支持 |
-| `FORMAT=HTML IMAGES=YES OUTFILE=...` | ✓ 图表以 base64 PNG 内嵌 |
-| `FORMAT=DOC OUTFILE=...` | ✓ 生成 .docx，图表为矢量 EMF |
-| `FORMAT=HTML IMAGEWIDTH/HEIGHT` | ✗ 致命错误 |
+| `FORMAT=IMAGE ... IMAGEROOT=...` | ✗ Unsupported |
+| `FORMAT=HTML IMAGES=YES OUTFILE=...` | ✓ Charts embedded as base64 PNG |
+| `FORMAT=DOC OUTFILE=...` | ✓ Produces a .docx; charts are vector EMF |
+| `FORMAT=HTML IMAGEWIDTH/HEIGHT` | ✗ Fatal error |
 
-**落定方案**：PNG/TIFF 走 HTML→base64 提取→Pillow 后处理（1950×1500 @300dpi，
-TIFF 为 LZW）；EMF 走 DOCX→zip 提取矢量 EMF。boxplot 的 EMF 为 SPSS 32 自身
-0 字节 bug（PNG/TIFF 正常），已在 0.3.1 通过改用 `EXAMINE /PLOT BOXPLOT`
-传统图模板根治（见 4 节验证）。
+**Final solution**: PNG/TIFF go through HTML → base64 extraction → Pillow
+post-processing (1950×1500 @300 dpi, TIFF as LZW); EMF goes through DOCX → zip
+extraction of the vector EMF. The boxplot EMF is a 0-byte bug in SPSS 32 itself
+(PNG/TIFF are fine); since 0.3.1 it has been fixed by switching to the classic
+`EXAMINE /PLOT BOXPLOT` chart template (see the verification in Section 4).
 
-### 3.2 结果解析：从文本到统计摘要
+### 3.2 Result parsing: from text to statistical summary
 
-`result_parser.py` 用行扫描状态机切分 SPSS 表块（处理 Notes 跳过、多行表头、
-单空格粘连单元格、`(a)` 脚注、`.000`→`<.001`），并对 16 类分析抽取关键统计量：
+`result_parser.py` uses a line-scanning state machine to split SPSS table
+blocks (handling Notes skipping, multi-line headers, single-space-glued cells,
+`(a)` footnotes, `.000`→`<.001`), and extracts the key statistics for 16
+analysis families:
 
-t 检验（独立/配对）、单因素/多因素 ANOVA（含 Levene、偏 η²）、相关、线性/
-Logistic/序数回归、频数、卡方、Cronbach's α、非参数（M-W/Wilcoxon/K-W）、
-Shapiro-Wilk 正态性、因子分析（KMO/Bartlett/累计方差）、描述统计。
+t-tests (independent/paired), one-way / multi-way ANOVA (including Levene,
+partial η²), correlations, linear / logistic / ordinal regression, frequencies,
+chi-square, Cronbach's α, nonparametric tests
+(Mann-Whitney / Wilcoxon / Kruskal-Wallis), Shapiro-Wilk normality, factor
+analysis (KMO / Bartlett / cumulative variance), and descriptive statistics.
 
-### 3.3 方法真机验证驱动修复
+### 3.3 Fixes driven by real-machine method verification
 
-26 个分析方法用例在真实 SPSS 32 上验收，暴露并修复 8 处模板问题：
-`TAILS(2)→TWOTAIL`、`MEAN` 参数逗号、TWOSTEP 子命令 `=` 与距离取值、
-判别/ MANOVA 因子值范围、废弃 METHOD 子命令、PLUM `TEST=PARALLEL`、
-GENLINMIXED subject 名义化、GENLIN `DISTRIBUTION` 并入 MODEL 等。
+26 analysis-method use cases were accepted on a real SPSS 32, exposing and
+fixing 8 template issues: `TAILS(2)→TWOTAIL`, the comma in the `MEAN` argument,
+the `=` after the TWOSTEP subcommands and the distance values, the discriminant
+/ MANOVA factor-value ranges, the deprecated METHOD subcommand, PLUM
+`TEST=PARALLEL`, GENLINMIXED subject nominalisation, and GENLIN
+`DISTRIBUTION` folded into MODEL, among others.
 
-### 3.4 安全层
+### 3.4 Safety layer
 
-`security.py`：危险命令（HOST/ERASE/DELETE FILE 等）行首匹配拦截、数据文件
-路径白名单（`SPSS_ALLOWED_DIRS`）、`dry_run`、JSONL 审计日志，统一接入
-`run_syntax` 覆盖所有工具。
+`security.py`: dangerous commands (`HOST` / `ERASE` / `DELETE FILE`, etc.) are
+blocked by start-of-line matching, a data-file path allowlist
+(`SPSS_ALLOWED_DIRS`), `dry_run`, and JSONL audit logging — all wired
+uniformly through `run_syntax` so they cover every tool.
 
-## 4 真机验证结果
+## 4 Real-Machine Verification Results
 
-| 类别 | 结果 |
+| Category | Result |
 |------|------|
-| 分析方法 | 26/26 通过 |
-| 补充工具（文件/状态/语法/结构化/genlin） | 11/11 通过 |
-| 图表 × PNG/EMF/TIFF | 11 类全格式通过（0.3.1 修复 boxplot EMF：`EXAMINE` 模板，EMF 约 19 KB 非零） |
-| 中介/调节 | 真机通过（Sobel z=6.75, p<.001；交互 p=.639） |
-| 单元测试 | 109 passed（含真机 reproduction manifest，自包含样例数据） |
+| Analysis methods | 26/26 passed |
+| Supplementary tools (file / status / syntax / structured / genlin) | 11/11 passed |
+| Charts × PNG/EMF/TIFF | All 11 kinds passed in every format (0.3.1 fixed the boxplot EMF with the `EXAMINE` template; EMF ≈ 19 KB, non-zero) |
+| Mediation / moderation | Passed on a real machine (Sobel z=6.75, p<.001; interaction p=.639) |
+| Unit tests | 109 passed (including a real-machine reproduction manifest with self-contained sample data) |
 
-样例数据与归档图：`examples/`（问卷/实验/生存/中介/纵向）。
+Sample data and archived charts: `examples/` (survey / experiment / survival /
+mediation / longitudinal).
 
-## 5 讨论与局限
+## 5 Discussion and Limitations
 
-- HTML 内嵌 PNG 固定约 800×500，300 dpi 出图为放大+重标 DPI；严格的矢量高分辨率
-  位图可走 EMF+GDI+ 渲染（已验证，Windows-only，留作后续）。
-- 中介/调节用三步回归实现并附 Sobel；严谨报告建议 PROCESS 的 Bootstrap 复核。
-- 生态收录（LobeHub/PulseMCP）与正式 Release 为发布账号操作，见 `docs/ecosystem.md`。
+- Embedded HTML PNGs are fixed at about 800×500, so a 300 dpi export means
+  upscaling plus re-stamped DPI; for a strictly high-resolution bitmap from a
+  vector chart, EMF + GDI+ rendering can be used (verified, Windows-only, left
+  for future work).
+- Mediation / moderation is implemented with three-step regression plus a Sobel
+  test; for rigorous reporting, a PROCESS bootstrap cross-check is recommended.
+- Ecosystem listings (LobeHub / PulseMCP) and official Releases are
+  publishing-account operations; see `docs/ecosystem.md`.
 
-## 6 结论
+## 6 Conclusion
 
-SPSS Studio MCP 证明了"统计引擎 + 制图工厂 + 结构化消费 + 安全护栏"的组合在
-真实 SPSS 32 上可落地：37 工具全量真机验收、论文级图片自动化、16 类结果摘要、
-执行安全审计。项目文档齐备（出图 PoC、结果解析、方法验证、安全），为心理/管理
-/社科研究的 agent 工作流提供了可复用的 MCP 服务。
+SPSS Studio MCP demonstrates that the combination of a "statistics engine +
+chart factory + structured consumption + safety guardrails" is achievable on a
+real SPSS 32: all 37 tools fully accepted on a real machine, automated
+paper-ready charts, summaries for 16 result families, and execution-safety
+auditing. The project documentation is complete (chart-export PoC, result
+parsing, method verification, security), providing a reusable MCP service for
+agent workflows in psychology / management / social-science research.
 
-## 附录：复现
+## Appendix: Reproduction
 
 ```powershell
 pip install -e ".[dev]"
 python scripts/make_sample_data.py
-python scripts/method_verification.py    # 26 方法
-python scripts/tool_verification.py      # 11 工具
+python scripts/method_verification.py    # 26 methods
+python scripts/tool_verification.py      # 11 tools
 python -m spss_mcp.poc_chart --format PNG|EMF|TIFF
-python scripts/archive_sample_charts.py  # 归档 11 张样例图
+python scripts/archive_sample_charts.py  # archive the 11 sample charts
 ```

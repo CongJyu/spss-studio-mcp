@@ -99,6 +99,30 @@ def _extract_syntax_issue_warnings(raw_output: str) -> list[str]:
     return warnings
 
 
+def _to_absolute(path: str) -> str:
+    """Resolve a (possibly relative or ~) data path against the server cwd.
+
+    The SPSS engine subprocess may start in a different working directory than
+    the MCP server (observed on macOS), so relative ``GET FILE`` paths that work
+    in one process can fail in the other.  Absolute paths are unambiguous on both.
+    """
+    p = Path(path).expanduser()
+    if not p.is_absolute():
+        p = Path.cwd() / p
+    return str(p.resolve())
+
+
+_GET_FILE_RE = re.compile(r"(GET FILE\s*=\s*')([^']+)(')", re.IGNORECASE)
+
+
+def _resolve_get_file_references(syntax: str) -> str:
+    """Rewrite every ``GET FILE='...'`` to an absolute path in place."""
+    def _repl(match: re.Match) -> str:
+        return f"{match.group(1)}{_to_absolute(match.group(2))}{match.group(3)}"
+
+    return _GET_FILE_RE.sub(_repl, syntax)
+
+
 async def run_syntax(
     syntax: str,
     data_file: Optional[str] = None,
@@ -194,6 +218,11 @@ async def run_syntax(
             "files": [],
         }
 
+    if data_file:
+        # Resolve relative/~ data paths against the server cwd so the SPSS engine
+        # opens the same file regardless of its own working directory.
+        data_file = _to_absolute(data_file)
+
     path_error = validate_data_file(data_file) if data_file else None
     if not path_error:
         for m in re.finditer(r"GET FILE='([^']+)'", syntax):
@@ -237,6 +266,9 @@ async def run_syntax(
     )
 
     execution_syntax = _build_execution_syntax(syntax=syntax, data_file=data_file)
+    # Normalise any GET FILE= paths embedded in the caller's own syntax to
+    # absolute, for the same working-directory reason as above.
+    execution_syntax = _resolve_get_file_references(execution_syntax)
     selection_syntax = _build_selection_syntax(
         filter_variable=filter_variable, select_if=select_if
     )
@@ -346,6 +378,18 @@ async def run_syntax(
         try:
             if _sys.platform == "win32":
                 _os.startfile(viewer_output_file)
+            elif _sys.platform == "darwin":
+                # `open` hands the .spv to SPSS Viewer.  Opt-in via SPSS_OPEN_VIEWER
+                # so headless/batch runs (CI, full method verification) do not pop
+                # a GUI per successful analysis.
+                if _os.environ.get("SPSS_OPEN_VIEWER", "").strip().lower() in (
+                    "1",
+                    "true",
+                    "yes",
+                ):
+                    import subprocess as _subprocess
+
+                    _subprocess.Popen(["open", viewer_output_file])
         except Exception:
             pass  # non-fatal: result is still returned even if open fails
 

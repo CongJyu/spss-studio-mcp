@@ -20,6 +20,7 @@ from __future__ import annotations
 import base64
 import re
 import struct
+import sys
 import zipfile
 from pathlib import Path
 from typing import Optional
@@ -110,26 +111,41 @@ def extract_docx_emf(docx_path: Path, imageroot: str) -> list[Path]:
     """
     if not docx_path.exists():
         raise ValueError(f"DOCX export not found: {docx_path}")
+    emf_names: list[str] = []
+    other_media: list[str] = []
     with zipfile.ZipFile(docx_path) as zf:
-        emf_names = sorted(
-            info.filename
-            for info in zf.infolist()
-            if _DOCX_EMF_RE.fullmatch(info.filename)
-        )
+        for info in zf.infolist():
+            if not info.filename.startswith("word/media/"):
+                continue
+            if _DOCX_EMF_RE.fullmatch(info.filename):
+                emf_names.append(info.filename)
+            elif info.file_size:  # non-empty raster/other media
+                other_media.append(info.filename)
         files: list[Path] = []
-        for i, name in enumerate(emf_names, start=1):
+        for i, name in enumerate(sorted(emf_names), start=1):
             raw = zf.read(name)
             if not raw:
                 continue
             out = docx_path.parent / f"{imageroot}_{i:03d}.emf"
             out.write_bytes(raw)
             files.append(out)
-    if not files:
+    if files:
+        return sorted(files)
+    if not emf_names and other_media:
+        # SPSS emitted raster instead of vector EMF.  Observed on SPSS Statistics
+        # for macOS: OMS FORMAT=DOC writes word/media/imageN.eps whose content is
+        # actually a PNG — no EMF at all.  EMF is a Windows metafile.
+        where = "macOS" if sys.platform == "darwin" else "this platform"
         raise ValueError(
-            "SPSS wrote empty EMF members for this chart type (known on SPSS 32 "
-            "for boxplot/schema charts); request PNG or TIFF instead."
+            "SPSS did not produce vector EMF output"
+            f" on {where}: the DOCX export contains raster images only "
+            "(word/media/*.png or *.eps).  SPSS cannot emit Windows EMF "
+            "metafiles here; request PNG or TIFF instead."
         )
-    return sorted(files)
+    raise ValueError(
+        "SPSS wrote empty EMF members for this chart type (known on SPSS 32 "
+        "for boxplot/schema charts); request PNG or TIFF instead."
+    )
 
 
 def find_image_files(output_dir: Path, imageroot: str) -> list[Path]:
