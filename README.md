@@ -2,6 +2,8 @@
 
 > Make SPSS an Agent's "statistics engine + chart factory": paper-ready charts, deep result parsing, verified methods, and safe execution.
 
+> This MCP is **Mac Only**, for Windows versions, see [flupke91/spss-studio-mcp](https://github.com/flupke91/spss-studio-mcp).
+
 **English** ｜ [繁體中文（香港）](README.zh-Hant-HK.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)

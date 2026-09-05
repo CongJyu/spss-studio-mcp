@@ -2,6 +2,8 @@
 
 > 令 SPSS 成為 Agent 的「統計引擎 + 製圖工廠」：達到投稿水準的圖片、深度結果剖析、方法真機驗證、安全執行。
 
+> 此 MCP **僅為 Mac** 提供支援，需要 Windows 版本之 MCP 請參閲 [flupke91/spss-studio-mcp](https://github.com/flupke91/spss-studio-mcp)。
+
 [English](README.md) ｜ **繁體中文（香港）**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
