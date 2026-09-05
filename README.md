@@ -76,14 +76,6 @@ spss_chart_histogram_density(
 # → returns the image file path, ready for submission
 ```
 
-Sample output (exported on real SPSS 32, 1950×1500 @300 dpi):
-
-![Engagement total histogram with normal density](examples/charts/survey_engagement_histogram_density.png)
-![Engagement total by major (mean + 95% CI)](examples/charts/survey_engagement_by_major.png)
-![Experiment posttest boxplot](examples/charts/experiment_posttest_boxplot.png)
-![KM survival curves by treatment](examples/charts/survival_km_curve.png)
-![Satisfaction vs performance scatter](examples/charts/mediation_satisfaction_performance_scatter.png)
-
 > **Format note**: chart output is **PNG and TIFF only**. Windows vector EMF
 > export was removed because SPSS for macOS cannot produce EMF metafiles (its
 > `OMS FORMAT=DOC` archive contains only raster PNG wrapped in `.eps`). Use

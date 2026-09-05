@@ -71,14 +71,6 @@ spss_chart_histogram_density(
 # → 回傳圖片檔案路徑，可直接投稿
 ```
 
-範例輸出（真實 SPSS 32 for Mac 匯出，1950×1500 @300 dpi）：
-
-![帶常態密度的學習投入總分直方圖](examples/charts/survey_engagement_histogram_density.png)
-![按主修的學習投入總分（平均值 + 95% CI）](examples/charts/survey_engagement_by_major.png)
-![實驗後測成績箱線圖](examples/charts/experiment_posttest_boxplot.png)
-![按治療分組的 KM 存活曲線](examples/charts/survival_km_curve.png)
-![滿意度與績效散點圖](examples/charts/mediation_satisfaction_performance_scatter.png)
-
 > **macOS 注意**：本專案僅支援 macOS 上的 SPSS，圖表輸出格式為 PNG 與 TIFF。
 > SPSS for Mac 只會產生點陣輸出，不會產生 Windows 向量 EMF（其 `OMS FORMAT=DOC`
 > 封存內是 PNG 資料），因此 EMF 匯出已從產品中移除；請使用
