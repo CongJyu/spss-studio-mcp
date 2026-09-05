@@ -66,5 +66,5 @@ bash scripts/install_macos.sh          # 建立 .venv、安裝依賴、configure
 ## 常見問題
 
 - **啟動慢**：首次引擎啟動約需 15–20 秒，之後為常駐工作階段。
-- **顯示未授權**：確保 SPSS 試用／正式授權可用，並避免同時開啟多個 SPSS 工作階段。
+- **顯示未授權**：確保 SPSS 試用 / 正式授權可用，並避免同時開啟多個 SPSS 工作階段。
 - **資料檔案被拒**：將檔案放入 `examples/data/`，或用 `SPSS_ALLOWED_DIRS` 宣告所在目錄。
