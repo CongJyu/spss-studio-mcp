@@ -122,14 +122,6 @@ spss_structured_result(
 - [安全層](docs/security.zh-Hant-HK.md)
 - [更新日誌](CHANGELOG.zh-Hant-HK.md)
 
-## 生態收錄與發佈
-
-- 狀態：P0–P4 里程碑完成，**v1.0.0 已發佈**
-  （[GitHub Releases](https://github.com/flupke91/spss-studio-mcp/releases)）；
-- LobeHub / PulseMCP 收錄草稿與提交清單：
-  [docs/ecosystem.zh-Hant-HK.md](docs/ecosystem.zh-Hant-HK.md)；
-- Release v1.0.0 說明：[docs/release_notes_v1.0.zh-Hant-HK.md](docs/release_notes_v1.0.zh-Hant-HK.md)。
-
 ## 許可證
 
 MIT（上游：`flupke91/spss-studio-mcp`，MIT）。

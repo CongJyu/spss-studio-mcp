@@ -131,14 +131,6 @@ See [docs/security.md](docs/security.md).
 - [Security layer](docs/security.md)
 - [Changelog](CHANGELOG.md)
 
-## Ecosystem & Release
-
-- Status: P0–P4 milestones complete, **v1.0.0 released**
-  ([GitHub Releases](https://github.com/flupke91/spss-studio-mcp/releases));
-- LobeHub / PulseMCP listing drafts and submission checklist:
-  [docs/ecosystem.md](docs/ecosystem.md);
-- Release v1.0.0 notes: [docs/release_notes_v1.0.md](docs/release_notes_v1.0.md).
-
 ## License
 
 MIT (upstream: `flupke91/spss-studio-mcp`, MIT).
