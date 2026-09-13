@@ -35,7 +35,66 @@ Per-case results: [docs/macos_verification.md](docs/macos_verification.md).
 
 ## Installation
 
+**Requirements**: macOS · Python 3.10+ · IBM SPSS Statistics for Mac.
+SPSS 32.0.0.0 is verified and auto-detected under `/Applications`; without it
+only the file-reading tools work.
 
+```bash
+git clone https://github.com/flupke91/spss-studio-mcp.git
+cd spss-studio-mcp
+bash scripts/install_macos.sh          # .venv + deps + status + Claude Code config
+bash scripts/install_macos.sh --codex  # same, but writes the Codex config
+bash scripts/install_macos.sh --local  # Claude Code → ~/.claude/settings.local.json
+```
+
+The installer creates `.venv`, installs `-e ".[dev]"`, runs a status check, and
+writes the MCP client config.
+
+### 1. Verify
+
+```bash
+.venv/bin/spss-studio-mcp status
+# pyreadstat : OK v1.3.6
+# pandas     : OK v3.0.5
+# SPSS batch : OK - /Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin/spssengine
+```
+
+`SPSS batch : NOT FOUND` means auto-detection failed — set `SPSS_INSTALL_PATH`
+(see below and [docs/macos_verification.md](docs/macos_verification.md)).
+
+### 2. Configure your client
+
+| Client          | Command                                              | Written to                                    |
+| --------------- | ---------------------------------------------------- | --------------------------------------------- |
+| Claude Code     | `.venv/bin/spss-studio-mcp configure-claude`         | `~/.claude.json` → `mcpServers.spss`          |
+| Codex           | `.venv/bin/spss-studio-mcp configure-codex`          | `~/.codex/config.toml` → `[mcp_servers.spss]` |
+| Other MCP hosts | `.venv/bin/spss-studio-mcp setup-info`               | prints a JSON snippet to paste manually       |
+
+Both commands merge into the existing file and leave a timestamped backup
+(`*.backup.YYYYMMDD_HHMMSS`). `configure-claude --local` targets
+`~/.claude/settings.local.json` instead. **Restart the client**, then ask it to
+run `spss_check_status` to confirm the server is connected.
+
+### Manual install
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e ".[dev]"   # -e . for runtime only
+.venv/bin/spss-studio-mcp configure-claude    # or configure-codex / setup-info
+```
+
+### Environment variables
+
+| Variable               | Default            | Purpose                                                                                      |
+| ---------------------- | ------------------ | -------------------------------------------------------------------------------------------- |
+| `SPSS_INSTALL_PATH`    | auto-detected      | SPSS `.app` bundle, `Contents/bin`, or the `spssengine` binary — set only if detection fails |
+| `SPSS_TIMEOUT`         | `120`              | Per-analysis timeout, seconds                                                                |
+| `SPSS_STARTUP_TIMEOUT` | `300`              | Engine startup timeout; licensing and Python init can be slow                                |
+| `SPSS_NO_SPSS`         | `0`                | Set to `1` to force file-only mode                                                           |
+| `SPSS_ALLOWED_DIRS`    | —                  | `;`-separated extra directories allowed as data sources                                      |
+| `SPSS_AUDIT_LOG`       | `logs/audit.jsonl` | Audit log path                                                                               |
+
+Full walkthrough: [docs/tutorial.md](docs/tutorial.md).
 
 ## Paper-Ready Charts (Core Feature)
 

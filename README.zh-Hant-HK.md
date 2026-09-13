@@ -30,7 +30,66 @@ Protocol）伺服器，為 Codex / Claude Code / Cursor 等 Agent 用戶端提�
 
 ## 安裝
 
+**環境要求**：macOS · Python 3.10+ · IBM SPSS Statistics for Mac。
+已在 SPSS 32.0.0.0 驗證，會自動偵測 `/Applications` 下的 SPSS；若未安裝
+SPSS，則只有讀取檔案的工具有效。
 
+```bash
+git clone https://github.com/flupke91/spss-studio-mcp.git
+cd spss-studio-mcp
+bash scripts/install_macos.sh          # .venv + 依賴 + 狀態檢查 + Claude Code 設定
+bash scripts/install_macos.sh --codex  # 同上，但改寫 Codex 設定
+bash scripts/install_macos.sh --local  # Claude Code → ~/.claude/settings.local.json
+```
+
+安裝腳本會建立 `.venv`、安裝 `-e ".[dev]"`、執行狀態檢查，並寫入 MCP 用戶端設定。
+
+### 1. 驗證
+
+```bash
+.venv/bin/spss-studio-mcp status
+# pyreadstat : OK v1.3.6
+# pandas     : OK v3.0.5
+# SPSS batch : OK - /Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin/spssengine
+```
+
+若顯示 `SPSS batch : NOT FOUND`，表示自動偵測失敗，請設定
+`SPSS_INSTALL_PATH`（見下方及
+[docs/macos_verification.zh-Hant-HK.md](docs/macos_verification.zh-Hant-HK.md)）。
+
+### 2. 設定用戶端
+
+| 用戶端            | 指令                                          | 寫入位置                                      |
+| ----------------- | --------------------------------------------- | --------------------------------------------- |
+| Claude Code       | `.venv/bin/spss-studio-mcp configure-claude`  | `~/.claude.json` → `mcpServers.spss`          |
+| Codex             | `.venv/bin/spss-studio-mcp configure-codex`   | `~/.codex/config.toml` → `[mcp_servers.spss]` |
+| 其他 MCP 用戶端   | `.venv/bin/spss-studio-mcp setup-info`        | 印出 JSON 片段，自行貼上                      |
+
+兩個指令都是合併寫入既有檔案，並留下帶時間戳的備份
+（`*.backup.YYYYMMDD_HHMMSS`）；`configure-claude --local` 改寫
+`~/.claude/settings.local.json`。**請重新啟動用戶端**，然後叫它執行
+`spss_check_status` 確認伺服器已連上。
+
+### 手動安裝
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e ".[dev]"   # 只要執行環境可用 -e .
+.venv/bin/spss-studio-mcp configure-claude    # 或 configure-codex / setup-info
+```
+
+### 環境變數
+
+| 變數                   | 預設值           | 用途                                                                          |
+| ---------------------- | ---------------- | ----------------------------------------------------------------------------- |
+| `SPSS_INSTALL_PATH`    | 自動偵測         | SPSS `.app`、`Contents/bin` 或 `spssengine` 執行檔；僅在偵測失敗時才需設定    |
+| `SPSS_TIMEOUT`         | `120`            | 單次分析逾時（秒）                                                            |
+| `SPSS_STARTUP_TIMEOUT` | `300`            | 引擎啟動逾時；授權與 Python 初始化較慢                                        |
+| `SPSS_NO_SPSS`         | `0`              | 設為 `1` 強制使用純檔案模式                                                   |
+| `SPSS_ALLOWED_DIRS`    | —                | 以 `;` 分隔的額外可用資料目錄                                                 |
+| `SPSS_AUDIT_LOG`       | `logs/audit.jsonl` | 審計日誌路徑                                                                |
+
+完整教學見 [docs/tutorial.zh-Hant-HK.md](docs/tutorial.zh-Hant-HK.md)。
 
 ## 達到投稿水準的圖表（核心賣點）
 
