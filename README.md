@@ -37,27 +37,6 @@ Per-case results: [docs/macos_verification.md](docs/macos_verification.md).
 
 
 
-## Quick Start
-
-**macOS** (SPSS Statistics 32 for Mac is auto-discovered inside the `.app`
-bundle under `/Applications`; Python ≥3.10 required):
-
-```bash
-cd spss-studio-mcp
-bash scripts/install_macos.sh              # creates .venv, installs deps, configure-claude
-.venv/bin/spss-studio-mcp status           # SPSS batch: OK
-.venv/bin/spss-studio-mcp configure-codex  # optional: Codex config
-```
-
-Then drive it from your client in natural language, e.g.:
-
-```text
-Run descriptive statistics and reliability analysis on examples/data/survey_study.sav
-Independent-samples t-test on examples/data/experiment_study.sav (grouping: group, dependent: posttest)
-Mediation analysis on examples/data/mediation_study.sav: autonomy → satisfaction → performance
-Histogram with normal density of engagement_total in examples/data/survey_study.sav, PNG 300dpi
-```
-
 ## Paper-Ready Charts (Core Feature)
 
 | Tool                                                    | Purpose                                              |
