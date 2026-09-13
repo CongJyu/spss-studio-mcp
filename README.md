@@ -33,6 +33,150 @@ Per-case results: [docs/macos_verification.md](docs/macos_verification.md).
 
 ---
 
+## Installation
+
+> **Prerequisites** — macOS with IBM SPSS Statistics 32 for Mac installed, plus
+> Python ≥3.10 (or [uv](https://docs.astral.sh/uv/)). SPSS is auto-discovered
+> inside the `.app` bundle under `/Applications`; set `SPSS_INSTALL_PATH` only
+> if yours is installed elsewhere.
+
+### Step 1 — Install the server (once, shared by every client)
+
+```bash
+git clone https://github.com/flupke91/spss-studio-mcp.git
+cd spss-studio-mcp
+python3 -m venv .venv
+.venv/bin/python -m pip install -e .
+
+.venv/bin/spss-studio-mcp status      # → SPSS batch : OK
+.venv/bin/spss-studio-mcp setup-info  # → the exact command / args / env for your client
+```
+
+Or use the one-command installer, which does the above **and** writes the client
+config for you (default target: Claude Code; add `--codex` for Codex CLI):
+
+```bash
+bash scripts/install_macos.sh            # install + configure-claude
+bash scripts/install_macos.sh --codex    # install + configure-codex
+```
+
+The examples below assume the clone is at `/Users/you/Code/spss-studio-mcp` —
+replace that with your own `pwd`.
+
+### Step 2 — Register the server with your client
+
+#### Claude Code
+
+The bundled configurator merges the entry into `~/.claude.json` (user scope:
+available in all your projects) and writes a timestamped backup first:
+
+```bash
+.venv/bin/spss-studio-mcp configure-claude
+```
+
+Or register it with the Claude Code CLI — identical result:
+
+```bash
+claude mcp add --transport stdio --scope user spss \
+  --env SPSS_INSTALL_PATH="/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin" \
+  --env SPSS_TIMEOUT=120 \
+  --env SPSS_STARTUP_TIMEOUT=300 \
+  -- /Users/you/Code/spss-studio-mcp/.venv/bin/spss-studio-mcp serve --transport stdio
+```
+
+Use `--scope project` instead to write a shared `.mcp.json` at the repo root.
+Verify with `claude mcp get spss`, or type `/mcp` inside a session.
+
+The resulting entry (exactly what `configure-claude` writes):
+
+```json
+{
+  "mcpServers": {
+    "spss": {
+      "type": "stdio",
+      "command": "/Users/you/Code/spss-studio-mcp/.venv/bin/spss-studio-mcp",
+      "args": ["serve", "--transport", "stdio"],
+      "env": {
+        "SPSS_INSTALL_PATH": "/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin",
+        "SPSS_TIMEOUT": "120",
+        "SPSS_STARTUP_TIMEOUT": "300"
+      }
+    }
+  }
+}
+```
+
+#### Codex CLI
+
+```bash
+.venv/bin/spss-studio-mcp configure-codex   # merges into ~/.codex/config.toml
+```
+
+Or with the Codex CLI:
+
+```bash
+codex mcp add spss \
+  --env SPSS_INSTALL_PATH="/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin" \
+  --env SPSS_TIMEOUT=120 \
+  --env SPSS_STARTUP_TIMEOUT=300 \
+  -- /Users/you/Code/spss-studio-mcp/.venv/bin/spss-studio-mcp serve --transport stdio
+```
+
+Both write the same block into `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.spss]
+command = '/Users/you/Code/spss-studio-mcp/.venv/bin/spss-studio-mcp'
+args = ["serve", "--transport", "stdio"]
+env = { SPSS_INSTALL_PATH = '/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin', SPSS_TIMEOUT = '120', SPSS_STARTUP_TIMEOUT = '300' }
+```
+
+Verify with `codex mcp list`.
+
+#### OpenCode
+
+OpenCode reads servers from the `mcp` key (**not** `mcpServers`) in
+`~/.config/opencode/opencode.json` (global) or `opencode.json` at the project
+root (higher precedence). There is no `configure-opencode` command yet — merge
+this in by hand, noting that `command` is an **array**:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "spss": {
+      "type": "local",
+      "command": [
+        "/Users/you/Code/spss-studio-mcp/.venv/bin/spss-studio-mcp",
+        "serve",
+        "--transport",
+        "stdio"
+      ],
+      "enabled": true,
+      "timeout": 60000,
+      "environment": {
+        "SPSS_INSTALL_PATH": "/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin",
+        "SPSS_TIMEOUT": "120",
+        "SPSS_STARTUP_TIMEOUT": "300"
+      }
+    }
+  }
+}
+```
+
+> **Set `timeout`**: OpenCode's MCP timeout defaults to 5 s, but the first SPSS
+> engine start takes ~15–20 s. 60000 ms (or more) avoids a spurious startup
+> failure.
+
+### Step 3 — Verify
+
+Restart the client, then drive it in natural language — `check SPSS status` is a
+good first prompt. Nothing needs to be exported in your shell: the server
+resolves SPSS itself and reads `SPSS_INSTALL_PATH` from the `env` block you just
+added.
+
+---
+
 ## Quick Start
 
 **macOS** (SPSS Statistics 32 for Mac is auto-discovered inside the `.app`
