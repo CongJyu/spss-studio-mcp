@@ -5,27 +5,31 @@
 #   bash scripts/install_macos.sh               # install + configure-claude
 #   bash scripts/install_macos.sh --codex       # install + configure-codex
 #   bash scripts/install_macos.sh --local       # Claude Code -> settings.local.json
+#   bash scripts/install_macos.sh --no-link     # skip the ~/.local/bin symlink
 #
 # Steps:
 #   1. Check Python (>=3.10; prefer uv, otherwise python3)
 #   2. Create .venv and pip install -e ".[dev]"
-#   3. Run `spss-studio-mcp status` to verify SPSS detection
-#   4. Write the MCP client config (Claude Code or Codex)
+#   3. Symlink the entrypoint into ~/.local/bin (skipped with --no-link)
+#   4. Run `spss-studio-mcp status` to verify SPSS detection
+#   5. Write the MCP client config (Claude Code or Codex)
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 ROOT="$(pwd)"
 
 CONFIGURE="configure-claude"
+LINK=true
 EXTRA=()
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --codex) CONFIGURE="configure-codex"; shift ;;
     --local) EXTRA+=("--local"); shift ;;
+    --no-link) LINK=false; shift ;;
     --help|-h)
-      sed -n '2,11p' "$0"; exit 0 ;;
-    *) echo "Unknown argument: $1" >&2; sed -n '2,11p' "$0"; exit 1 ;;
+      sed -n '2,15p' "$0"; exit 0 ;;
+    *) echo "Unknown argument: $1" >&2; sed -n '2,15p' "$0"; exit 1 ;;
   esac
 done
 
@@ -69,7 +73,7 @@ create_venv() {
 }
 
 install_deps() {
-  info "[2/4] Installing spss-studio-mcp (editable) ..."
+  info "[2/5] Installing spss-studio-mcp (editable) ..."
   if command -v uv >/dev/null 2>&1; then
     uv pip install --python "$ROOT/.venv/bin/python" -e ".[dev]"
   else
@@ -79,8 +83,44 @@ install_deps() {
   ok "Dependencies installed"
 }
 
+# Put the entrypoint on PATH so every MCP client config can use the plain
+# command name instead of a hardcoded absolute path.
+link_entrypoint() {
+  if [ "$LINK" != true ]; then
+    info "[3/5] Skipping PATH symlink (--no-link)"
+    return
+  fi
+
+  local bin_dir="$HOME/.local/bin"
+  local target="$ROOT/.venv/bin/spss-studio-mcp"
+  local link="$bin_dir/spss-studio-mcp"
+
+  info "[3/5] Linking entrypoint onto PATH ..."
+  mkdir -p "$bin_dir"
+
+  if [ -L "$link" ] && [ "$(readlink "$link")" = "$target" ]; then
+    ok "Symlink already current: $link"
+  elif [ -e "$link" ] && [ ! -L "$link" ]; then
+    fail "$link exists and is not a symlink - leaving it untouched"
+    info "Remove it yourself, then re-run; or pass --no-link and use absolute paths"
+    return
+  else
+    ln -sfn "$target" "$link"
+    ok "Linked $link -> $target"
+  fi
+
+  case ":$PATH:" in
+    *":$bin_dir:"*) ok "$bin_dir is on PATH" ;;
+    *)
+      info "$bin_dir is NOT on PATH. Add it to your shell profile:"
+      info "  echo 'export PATH=\"\$HOME/.local/bin:\$PATH\"' >> ~/.zshrc"
+      info "Until then, use the absolute path in MCP client configs."
+      ;;
+  esac
+}
+
 run_status() {
-  info "[3/4] Verifying install (auto-detecting SPSS) ..."
+  info "[4/5] Verifying install (auto-detecting SPSS) ..."
   "$ROOT/.venv/bin/spss-studio-mcp" status || true
   if "$ROOT/.venv/bin/spss-studio-mcp" status 2>&1 | grep -q "SPSS batch : NOT FOUND"; then
     info "SPSS not detected - only the file-based tools are available."
@@ -89,7 +129,7 @@ run_status() {
 }
 
 configure_client() {
-  info "[4/4] Writing MCP client config: spss-studio-mcp $CONFIGURE ${EXTRA[*]:-}"
+  info "[5/5] Writing MCP client config: spss-studio-mcp $CONFIGURE ${EXTRA[*]:-}"
   "$ROOT/.venv/bin/spss-studio-mcp" "$CONFIGURE" "${EXTRA[@]:-}"
   ok "Configuration written"
 }
@@ -100,6 +140,7 @@ echo "========================================"
 check_python
 create_venv
 install_deps
+link_entrypoint
 run_status
 configure_client
 
@@ -107,5 +148,5 @@ echo "========================================"
 echo "  Installation complete!"
 echo "========================================"
 ok "Next: restart Claude Code (or Codex), then ask: check SPSS status"
-info "Docs: README.md / QUICK_START.md / docs/macos_verification.md"
+info "Docs: README.md / docs/tutorial.md / docs/macos_verification.md"
 info "Tip: charts export as PNG or TIFF at 300 dpi, submission-ready"

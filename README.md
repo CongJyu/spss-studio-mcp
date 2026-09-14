@@ -75,6 +75,69 @@ Both commands merge into the existing file and leave a timestamped backup
 `~/.claude/settings.local.json` instead. **Restart the client**, then ask it to
 run `spss_check_status` to confirm the server is connected.
 
+### Manual MCP configuration
+
+The installer symlinks `spss-studio-mcp` into `~/.local/bin`, so the plain
+command name resolves in any client. Copy the matching snippet below — no path
+editing needed.
+
+> If you passed `--no-link`, or `~/.local/bin` is not on your `PATH`, substitute
+> the absolute path to your clone
+> (`/absolute/path/to/spss-studio-mcp/.venv/bin/spss-studio-mcp`).
+
+**Claude Code** — `~/.claude.json`, or `.mcp.json` at a project root:
+
+```json
+{
+  "mcpServers": {
+    "spss": {
+      "type": "stdio",
+      "command": "spss-studio-mcp",
+      "args": ["serve", "--transport", "stdio"]
+    }
+  }
+}
+```
+
+**Codex** — `~/.codex/config.toml`. This file is **TOML**, not JSON:
+
+```toml
+[mcp_servers.spss]
+command = "spss-studio-mcp"
+args = ["serve", "--transport", "stdio"]
+```
+
+Codex aborts a tool call after 60 s by default. Add `tool_timeout_sec = 600`
+inside the table if an analysis needs longer.
+
+**Gemini CLI** — `~/.gemini/settings.json`, or `.gemini/settings.json` at a
+project root:
+
+```json
+{
+  "mcpServers": {
+    "spss": {
+      "command": "spss-studio-mcp",
+      "args": ["serve", "--transport", "stdio"]
+    }
+  }
+}
+```
+
+Gemini CLI's default request timeout is 10 minutes, which already covers a full
+analysis run, so no `timeout` key is needed.
+
+If `status` reports `SPSS batch : NOT FOUND`, add the detection path to the
+entry's `env`:
+
+```json
+"env": {
+  "SPSS_INSTALL_PATH": "/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin"
+}
+```
+
+Restart the client after editing — MCP configuration is read at startup only.
+
 ### Manual install
 
 ```bash

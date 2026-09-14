@@ -72,7 +72,8 @@ path has been deleted.
   produced.
 - Data paths: relative or absolute both work (relative paths are resolved to
   absolute automatically).
-- Install & configure: `scripts/install_macos.sh` and the README / QUICK_START.
+- Install & configure: `scripts/install_macos.sh`, plus the README and the
+  [tutorial](tutorial.md).
 
 See also [method verification](method_verification.md) and the per-case JSON
 results referenced there.

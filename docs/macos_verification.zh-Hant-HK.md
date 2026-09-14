@@ -62,6 +62,6 @@ macOS 的 SPSS 引擎子程序啟動時的工作目錄與 MCP 伺服器不同，
 - 分析工具（t 檢定／ANOVA／迴歸／中介／調節／存活分析……）：全部可用。
 - 圖表：使用 `PNG` 或 `TIFF`（300 dpi，可直接投稿）；EMF 輸出已移除。
 - 資料路徑：相對或絕對皆可（相對路徑會自動解析為絕對路徑）。
-- 安裝與設定：`scripts/install_macos.sh` 及 README／QUICK_START 的安裝章節。
+- 安裝與設定：`scripts/install_macos.sh`，以及 README 與[教學](tutorial.zh-Hant-HK.md)。
 
 另見 [方法真機驗證](method_verification.zh-Hant-HK.md) 及其所述的逐案例 JSON 結果。

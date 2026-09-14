@@ -66,6 +66,68 @@ bash scripts/install_macos.sh --local  # Claude Code → ~/.claude/settings.loca
 `~/.claude/settings.local.json`。 **請重新啟動用戶端**，然後叫它執行
 `spss_check_status` 確認伺服器已連上。
 
+### 手動 MCP 設定
+
+安裝腳本會把 `spss-studio-mcp` 連到 `~/.local/bin`，因此任何用戶端都能直接以
+指令名稱解析。複製以下對應片段即可，毋須修改路徑。
+
+> 若你使用了 `--no-link`，或 `~/.local/bin` 不在你的 `PATH` 上，請改寫成
+> clone 目錄的絕對路徑
+> （`/absolute/path/to/spss-studio-mcp/.venv/bin/spss-studio-mcp`）。
+
+**Claude Code** —— `~/.claude.json`，或專案根目錄的 `.mcp.json`：
+
+```json
+{
+  "mcpServers": {
+    "spss": {
+      "type": "stdio",
+      "command": "spss-studio-mcp",
+      "args": ["serve", "--transport", "stdio"]
+    }
+  }
+}
+```
+
+**Codex** —— `~/.codex/config.toml`（此檔為 **TOML**，並非 JSON）：
+
+```toml
+[mcp_servers.spss]
+command = "spss-studio-mcp"
+args = ["serve", "--transport", "stdio"]
+```
+
+Codex 預設會在 60 秒後中止工具呼叫；若分析需時更久，可在該表格內加上
+`tool_timeout_sec = 600`。
+
+**Gemini CLI** —— `~/.gemini/settings.json`，或專案根目錄的
+`.gemini/settings.json`：
+
+```json
+{
+  "mcpServers": {
+    "spss": {
+      "command": "spss-studio-mcp",
+      "args": ["serve", "--transport", "stdio"]
+    }
+  }
+}
+```
+
+Gemini CLI 的預設請求逾時為 10 分鐘，已足夠完成一次完整分析，毋須設定
+`timeout`。
+
+若 `status` 顯示 `SPSS batch : NOT FOUND`，請在該項目中加入 `env` 指定偵測
+路徑：
+
+```json
+"env": {
+  "SPSS_INSTALL_PATH": "/Applications/IBM SPSS Statistics/IBM SPSS Statistics.app/Contents/bin"
+}
+```
+
+修改後請**重新啟動用戶端**，MCP 設定只會在啟動時讀取一次。
+
 ### 手動安裝
 
 ```bash
