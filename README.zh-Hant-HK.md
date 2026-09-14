@@ -2,7 +2,8 @@
 
 > 令 SPSS 成為 Agent 的「統計引擎 + 製圖工廠」：達到投稿水準的圖片、深度結果剖析、方法真機驗證、安全執行。
 
-> 此 MCP **僅為 Mac** 提供支援，需要 Windows 版本之 MCP 請參閲 [flupke91/spss-studio-mcp](https://github.com/flupke91/spss-studio-mcp)。
+> 此 MCP **僅為 Mac** 提供支援，需要 Windows 版本之 MCP
+> 請參閲 [flupke91/spss-studio-mcp](https://github.com/flupke91/spss-studio-mcp)。
 
 [English](README.md) ｜ **繁體中文（香港）**
 
@@ -10,29 +11,25 @@
 [![Python](https://img.shields.io/badge/Python-3.14%2B-blue.svg)]()
 [![Tests](https://img.shields.io/badge/tests-105%20passed-brightgreen.svg)]()
 
-`spss-studio-mcp` 是一個面向 **IBM SPSS Statistics** 的 MCP（Model Context
-Protocol）伺服器，為 Codex / Claude Code / Cursor 等 Agent 用戶端提供：
+`spss-studio-mcp` 是一個面向 **IBM SPSS Statistics** 的 MCP（Model Context Protocol）伺服器，為 Codex / Claude Code /
+Cursor 等 Agent 用戶端提供：
 
-- **達到投稿水準的圖表**：11 類 `spss_chart_*` 工具，一鍵匯出 PNG / TIFF
-  （1950×1500 @300 dpi），回傳檔案路徑可直接投稿；
-- **深度結果剖析**：OMS 文字 → Markdown 表格 + 結構化 JSON + 16 類分析統計摘要
-  （t / F / r / B / Wald / α / χ² / p / 效應量）；
+- **達到投稿水準的圖表**：11 類 `spss_chart_*` 工具，一鍵匯出 PNG / TIFF （1950×1500 @300 dpi），回傳檔案路徑可直接投稿；
+- **深度結果剖析**：OMS 文字 → Markdown 表格 + 結構化 JSON + 16 類分析統計摘要 （t / F / r / B / Wald / α / χ² / p / 效應量）；
 - **方法真機驗證**：全部 37 個分析工具加 11 個輔助工具均在真實 SPSS 32 for Mac 上驗證；
 - **中介 / 調節**：`spss_mediation`（Baron & Kenny 三步迴歸 + Sobel 檢驗）、
   `spss_moderation`（中心化交互迴歸）；
 - **安全執行層**：危險指令攔截、資料路徑白名單、`dry_run` 預檢、JSONL 審計日誌。
 
-一切能力已在 **IBM SPSS Statistics 32.0.0.0（macOS）** 真機驗證 —— 105 個單元
-測試全部通過，包括一個自包含的真機重現清單。逐條結果見
+一切能力已在 **IBM SPSS Statistics 32.0.0.0（macOS）** 真機驗證 —— 105 個單元 測試全部通過，包括一個自包含的真機重現清單。逐條結果見
 [docs/macos_verification.zh-Hant-HK.md](docs/macos_verification.zh-Hant-HK.md)。
 
 ---
 
 ## 安裝
 
-**環境要求**：macOS · Python 3.10+ · IBM SPSS Statistics for Mac。
-已在 SPSS 32.0.0.0 驗證，會自動偵測 `/Applications` 下的 SPSS；若未安裝
-SPSS，則只有讀取檔案的工具有效。
+**環境要求**：macOS · Python 3.10+ · IBM SPSS Statistics for Mac。 已在 SPSS 32.0.0.0 驗證，會自動偵測 `/Applications` 下的
+SPSS；若未安裝 SPSS，則只有讀取檔案的工具有效。
 
 ```bash
 git clone https://github.com/CongJyu/spss-studio-mcp.git
@@ -59,15 +56,14 @@ bash scripts/install_macos.sh --local  # Claude Code → ~/.claude/settings.loca
 
 ### 2. 設定用戶端
 
-| 用戶端            | 指令                                          | 寫入位置                                      |
-| ----------------- | --------------------------------------------- | --------------------------------------------- |
-| Claude Code       | `.venv/bin/spss-studio-mcp configure-claude`  | `~/.claude.json` → `mcpServers.spss`          |
-| Codex             | `.venv/bin/spss-studio-mcp configure-codex`   | `~/.codex/config.toml` → `[mcp_servers.spss]` |
-| 其他 MCP 用戶端   | `.venv/bin/spss-studio-mcp setup-info`        | 印出 JSON 片段，自行貼上                      |
+| 用戶端          | 指令                                         | 寫入位置                                      |
+|-----------------|----------------------------------------------|-----------------------------------------------|
+| Claude Code     | `.venv/bin/spss-studio-mcp configure-claude` | `~/.claude.json` → `mcpServers.spss`          |
+| Codex           | `.venv/bin/spss-studio-mcp configure-codex`  | `~/.codex/config.toml` → `[mcp_servers.spss]` |
+| 其他 MCP 用戶端 | `.venv/bin/spss-studio-mcp setup-info`       | 印出 JSON 片段，自行貼上                      |
 
-兩個指令都是合併寫入既有檔案，並留下帶時間戳的備份
-（`*.backup.YYYYMMDD_HHMMSS`）；`configure-claude --local` 改寫
-`~/.claude/settings.local.json`。**請重新啟動用戶端**，然後叫它執行
+兩個指令都是合併寫入既有檔案，並留下帶時間戳的備份 （`*.backup.YYYYMMDD_HHMMSS`）；`configure-claude --local` 改寫
+`~/.claude/settings.local.json`。 **請重新啟動用戶端**，然後叫它執行
 `spss_check_status` 確認伺服器已連上。
 
 ### 手動安裝
@@ -80,21 +76,21 @@ python3 -m venv .venv
 
 ### 環境變數
 
-| 變數                   | 預設值           | 用途                                                                          |
-| ---------------------- | ---------------- | ----------------------------------------------------------------------------- |
-| `SPSS_INSTALL_PATH`    | 自動偵測         | SPSS `.app`、`Contents/bin` 或 `spssengine` 執行檔；僅在偵測失敗時才需設定    |
-| `SPSS_TIMEOUT`         | `120`            | 單次分析逾時（秒）                                                            |
-| `SPSS_STARTUP_TIMEOUT` | `300`            | 引擎啟動逾時；授權與 Python 初始化較慢                                        |
-| `SPSS_NO_SPSS`         | `0`              | 設為 `1` 強制使用純檔案模式                                                   |
-| `SPSS_ALLOWED_DIRS`    | —                | 以 `;` 分隔的額外可用資料目錄                                                 |
-| `SPSS_AUDIT_LOG`       | `logs/audit.jsonl` | 審計日誌路徑                                                                |
+| 變數                   | 預設值             | 用途                                                                       |
+|------------------------|--------------------|----------------------------------------------------------------------------|
+| `SPSS_INSTALL_PATH`    | 自動偵測           | SPSS `.app`、`Contents/bin` 或 `spssengine` 執行檔；僅在偵測失敗時才需設定 |
+| `SPSS_TIMEOUT`         | `120`              | 單次分析逾時（秒）                                                         |
+| `SPSS_STARTUP_TIMEOUT` | `300`              | 引擎啟動逾時；授權與 Python 初始化較慢                                     |
+| `SPSS_NO_SPSS`         | `0`                | 設為 `1` 強制使用純檔案模式                                                |
+| `SPSS_ALLOWED_DIRS`    | —                  | 以 `;` 分隔的額外可用資料目錄                                              |
+| `SPSS_AUDIT_LOG`       | `logs/audit.jsonl` | 審計日誌路徑                                                               |
 
 完整教學見 [docs/tutorial.zh-Hant-HK.md](docs/tutorial.zh-Hant-HK.md)。
 
 ## 達到投稿水準的圖表（核心賣點）
 
 | 工具                                                    | 用途                                |
-| ------------------------------------------------------- | ----------------------------------- |
+|---------------------------------------------------------|-------------------------------------|
 | `spss_chart_histogram` / `spss_chart_histogram_density` | 分佈直方圖 / 直方圖 + 常態密度      |
 | `spss_chart_scatter`                                    | 兩變項散點圖                        |
 | `spss_chart_bar` / `spss_chart_bar_error`               | 分類平均值長條圖 / 連 95% CI 誤差鬚 |
@@ -108,7 +104,7 @@ python3 -m venv .venv
 spss_chart_histogram_density(
     variable="engagement_total",
     title="學習投入總分分佈（帶常態密度）",
-    image_format="PNG",            # PNG / TIFF
+    image_format="PNG",  # PNG / TIFF
     width_px=1950, height_px=1500, dpi=300,
     data_file="examples/data/survey_study.sav",
 )
@@ -130,16 +126,15 @@ spss_structured_result(
 # → {markdown, json: {tables, summary}, files, warnings}
 ```
 
-`run_syntax` 回傳的 Markdown 末尾會附上一個 `### Statistical Summary` 區塊，
-內含平白語言結論加上關鍵統計量。
-16 類分析的抽取細節見：[docs/result_parsing.zh-Hant-HK.md](docs/result_parsing.zh-Hant-HK.md)。
+`run_syntax` 回傳的 Markdown 末尾會附上一個 `### Statistical Summary` 區塊， 內含平白語言結論加上關鍵統計量。 16
+類分析的抽取細節見：[docs/result_parsing.zh-Hant-HK.md](docs/result_parsing.zh-Hant-HK.md)。
 
 ## 範例資料
 
 `examples/data/` 提供五組貼近論文場景的範例資料（固定隨機種子，可完整重現）：
 
 | 檔案                                        | 場景                       | 關鍵變項                                             |
-| ------------------------------------------- | -------------------------- | ---------------------------------------------------- |
+|---------------------------------------------|----------------------------|------------------------------------------------------|
 | `survey_study.sav`                          | 問卷：200 位學生學習投入   | `gender` / `major` / `q1`–`q12` / `engagement_total` |
 | `experiment_study.sav`                      | 實驗：120 人記憶訓練前後測 | `group` / `pretest` / `posttest` / `gain`            |
 | `survival_study.sav`                        | 存活：150 例隨訪           | `treatment` / `time` / `status`                      |
@@ -164,7 +159,6 @@ spss_structured_result(
 - [方法真機驗證](docs/method_verification.zh-Hant-HK.md)
 - [macOS 真機驗證報告（SPSS 32 for Mac）](docs/macos_verification.zh-Hant-HK.md)
 - [安全層](docs/security.zh-Hant-HK.md)
-- [更新日誌](CHANGELOG.zh-Hant-HK.md)
 
 ## 許可證
 

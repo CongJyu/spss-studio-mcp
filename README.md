@@ -173,7 +173,6 @@ See [docs/security.md](docs/security.md).
 - [Method verification](docs/method_verification.md)
 - [macOS verification report (SPSS 32 for Mac)](docs/macos_verification.md)
 - [Security layer](docs/security.md)
-- [Changelog](CHANGELOG.md)
 
 ## License
 
