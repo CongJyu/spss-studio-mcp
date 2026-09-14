@@ -35,7 +35,7 @@ Protocol）伺服器，為 Codex / Claude Code / Cursor 等 Agent 用戶端提�
 SPSS，則只有讀取檔案的工具有效。
 
 ```bash
-git clone https://github.com/flupke91/spss-studio-mcp.git
+git clone https://github.com/CongJyu/spss-studio-mcp.git
 cd spss-studio-mcp
 bash scripts/install_macos.sh          # .venv + 依賴 + 狀態檢查 + Claude Code 設定
 bash scripts/install_macos.sh --codex  # 同上，但改寫 Codex 設定

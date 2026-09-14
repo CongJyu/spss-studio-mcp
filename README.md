@@ -40,7 +40,7 @@ SPSS 32.0.0.0 is verified and auto-detected under `/Applications`; without it
 only the file-reading tools work.
 
 ```bash
-git clone https://github.com/flupke91/spss-studio-mcp.git
+git clone https://github.com/CongJyu/spss-studio-mcp.git
 cd spss-studio-mcp
 bash scripts/install_macos.sh          # .venv + deps + status + Claude Code config
 bash scripts/install_macos.sh --codex  # same, but writes the Codex config
