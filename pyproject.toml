@@ -10,7 +10,7 @@ readme = "README.md"
 authors = [
     { name = "SPSS Studio MCP Contributors" }
 ]
-license = {text = "MIT"}
+license = { text = "MIT" }
 requires-python = ">=3.10"
 keywords = [
     "spss",
@@ -42,9 +42,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/flupke91/spss-studio-mcp"
-Repository = "https://github.com/flupke91/spss-studio-mcp"
-Documentation = "https://github.com/flupke91/spss-studio-mcp/tree/main/docs"
+Homepage = "https://github.com/CongJyu/spss-studio-mcp"
+Repository = "https://github.com/CongJyu/spss-studio-mcp"
+Documentation = "https://github.com/CongJyu/spss-studio-mcp/tree/main/docs"
 
 [project.optional-dependencies]
 dev = [

@@ -31,7 +31,7 @@ The passage below can be copied straight to Codex, Claude Code, or another MCP-c
 Please install and configure SPSS Studio MCP for me so that you can call IBM SPSS Statistics directly for statistical analysis and publication-grade charts.
 
 Project URL:
-https://github.com/flupke91/spss-studio-mcp
+https://github.com/CongJyu/spss-studio-mcp
 
 Please follow this order and do not skip any check:
 
@@ -69,7 +69,7 @@ Python should be 3.10 or later. Then confirm that IBM SPSS Statistics is install
 ### 3.2 Get the project and install it
 
 ```bash
-git clone https://github.com/flupke91/spss-studio-mcp.git
+git clone https://github.com/CongJyu/spss-studio-mcp.git
 cd spss-studio-mcp
 python3 -m pip install -e ".[dev]"
 ```

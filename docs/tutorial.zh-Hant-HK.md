@@ -31,7 +31,7 @@ SPSS Studio MCP 把當中的大量重複操作交給 Agent：
 請幫我安裝並設定 SPSS Studio MCP，讓你可以直接呼叫 IBM SPSS Statistics 進行統計分析與論文級出圖。
 
 專案網址：
-https://github.com/flupke91/spss-studio-mcp
+https://github.com/CongJyu/spss-studio-mcp
 
 請依照以下順序執行，不要跳過任何檢查：
 
@@ -71,7 +71,7 @@ Python 應為 3.10 或以上版本。然後確認 IBM SPSS Statistics for Mac（
 ### 3.2 取得專案並安裝
 
 ```bash
-git clone https://github.com/flupke91/spss-studio-mcp.git
+git clone https://github.com/CongJyu/spss-studio-mcp.git
 cd spss-studio-mcp
 bash scripts/install_macos.sh          # 建立 .venv、安裝依賴、configure-claude
 ```
